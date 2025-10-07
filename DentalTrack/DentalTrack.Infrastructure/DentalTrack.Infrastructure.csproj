@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DentalTrack.Application\DentalTrack.Application.csproj" />
+    <ProjectReference Include="..\DentalTrack.Domain\DentalTrack.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
