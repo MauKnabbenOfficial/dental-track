@@ -1,0 +1,162 @@
+# ================================================
+# .NET + MAUI + Visual Studio + Azure + Docker
+# ================================================
+
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / Rider / VSCode
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# MAUI / Xamarin
+*.db
+*.db-shm
+*.db-wal
+*.pdb
+*.apk
+*.aab
+*.ipa
+*.app/
+*.app.dSYM/
+*.xcarchive/
+*.xcuserstate
+*.xcuserdata/
+*.xcodeproj/
+platforms/
+Resources/Raw/*
+!Resources/Raw/.gitkeep
+AppPackages/
+App_Bundle/
+
+# .NET generated files
+project.lock.json
+project.fragment.lock.json
+artifacts/
+launchSettings.json
+*.log
+*.nupkg
+*.snupkg
+*.stackdump
+*.pidb
+*.mdb
+*.bak
+*.backup
+*.tmp
+*.temp
+*.svclog
+*.xml.signed
+*.Publish.xml
+*.pubxml
+*.pubxml.user
+*.publishproj
+
+# EF Core Migrations cache
+Migrations/**/__EFMigrationsHistory*
+*.sqlite
+*.db
+*.mdf
+*.ldf
+
+# Environment / secrets
+.env
+secrets.json
+appsettings.*.local.json
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Private.json
+
+# User Secrets (stored outside repo)
+**/secrets.json
+
+# Azure / Docker / Compose
+Dockerfile.*
+docker-compose.*
+.dockerignore
+.docker/
+docker-compose.override.yml
+.docker-compose-env
+*.env
+
+# Logs
+*.log
+logs/
+Logs/
+log/
+Log/
+*.trace
+*.svclog
+*.etl
+*.trace.json
+*.pid
+
+# Publish / Packages / Coverage
+publish/
+PublishProfiles/
+TestResults/
+TestResult.xml
+coverage/
+*.coverage
+*.coveragexml
+*.opencover.xml
+
+# macOS / Linux
+.DS_Store
+*.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Node / npm (caso MAUI use JS/TS)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup / temp
+~$*
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Local tools
+*.local
+*.local.json
+tools/
+.env.development
+.env.production
+
+# Ignore MAUI build intermediates (Win/Mac)
+Platforms/Windows/bin/
+Platforms/Windows/obj/
+Platforms/MacCatalyst/bin/
+Platforms/MacCatalyst/obj/
+Platforms/iOS/bin/
+Platforms/iOS/obj/
+Platforms/Android/bin/
+Platforms/Android/obj/
+
+# ================================================
+# End of .gitignore
+# ================================================
