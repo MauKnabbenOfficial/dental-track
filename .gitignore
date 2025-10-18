@@ -32,9 +32,6 @@ obj/
 *.xcuserstate
 *.xcuserdata/
 *.xcodeproj/
-platforms/
-Resources/Raw/*
-!Resources/Raw/.gitkeep
 AppPackages/
 App_Bundle/
 
