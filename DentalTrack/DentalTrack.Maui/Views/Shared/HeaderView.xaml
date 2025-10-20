@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DentalTrack.Maui.Views.Shared.HeaderView">
+    
+    
+    <Grid ColumnDefinitions="Auto,*,Auto" Padding="16" Background="{StaticResource DT.Primary}">
+        <HorizontalStackLayout Spacing="10">
+            <Image Source="logo_dentaltrack.png" HeightRequest="24"/>
+            <Label Text="DentalTrack" TextColor="{StaticResource DT.Text}" FontAttributes="Bold" FontSize="18"/>
+        </HorizontalStackLayout>
+
+        <Label Grid.Column="1"
+           Text="{Binding UserName}"
+           TextColor="{StaticResource DT.Text}"
+           HorizontalTextAlignment="Center"
+           VerticalTextAlignment="Center"
+           LineBreakMode="TailTruncation"/>
+
+        <Button Grid.Column="2"
+            Text="Sair"
+            Padding="14,8"
+            BackgroundColor="{StaticResource DT.Accent}"
+            TextColor="{StaticResource DT.PrimaryDark}"
+            CornerRadius="10"
+            Command="{Binding LogoutCommand}"/>
+    </Grid>
+    
+</ContentView>

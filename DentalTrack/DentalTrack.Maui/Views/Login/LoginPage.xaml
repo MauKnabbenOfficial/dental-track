@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DentalTrack.Maui.Views.LoginPage"
+             Shell.FlyoutBehavior="Disabled"
+             Shell.NavBarIsVisible="False"
+             Shell.FlyoutItemIsVisible="False"
+             Title="LoginPage">
+
+    <!-- Fundo com gradiente brand -->
+    <ContentPage.Background>
+        <StaticResource Key="DT.BackgroundGradient" />
+    </ContentPage.Background>
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="24" HorizontalOptions="Center" VerticalOptions="Center">
+            <!-- Header/Logo -->
+        <HorizontalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+            <Image Source="logo_dentaltrack.png" HeightRequest="28" />
+            <Label Text="DentalTrack" Style="{StaticResource DT.Title}" />
+        </HorizontalStackLayout>
+
+        <!-- Card central -->
+        <Border Grid.Row="1" WidthRequest="420"  Style="{StaticResource DT.Card}">
+            <VerticalStackLayout Spacing="14">
+                <Label Text="Bem-vinda(o)!" TextColor="{StaticResource DT.Text}" FontSize="22" FontAttributes="Bold"/>
+                <Label Text="Acesse sua conta para continuar" TextColor="{StaticResource DT.TextMuted}" />
+
+                <!-- Email -->
+                <VerticalStackLayout>
+                    <Label Text="E-mail" TextColor="{StaticResource DT.TextMuted}" />
+                    <Entry Style="{StaticResource DT.Entry}"
+                         Placeholder="voce@clinic.com"
+                         Keyboard="Email"
+                         Text="{Binding Email}" />
+                </VerticalStackLayout>
+
+                <!-- Senha + mostrar -->
+                <VerticalStackLayout>
+                    <Label Text="Senha" TextColor="{StaticResource DT.TextMuted}" VerticalTextAlignment="Center"/>
+                    <Grid ColumnDefinitions="*,Auto" >
+                        <Entry 
+                            Grid.Column="0"
+                            Style="{StaticResource DT.Entry}"
+                            Placeholder="••••••"
+                            IsPassword="{Binding IsPasswordVisible, Converter={StaticResource InverseBoolConverter}}"
+                            Text="{Binding Password}" />
+                        <CheckBox Grid.Column="1" IsChecked="{Binding IsPasswordVisible}" 
+                            MinimumWidthRequest="22" MinimumHeightRequest="22"
+                            HorizontalOptions="End" VerticalOptions="End" Margin="0"/>
+                    </Grid>
+                </VerticalStackLayout>
+
+                <!-- Lembrar -->
+                <HorizontalStackLayout>
+                    <CheckBox
+                        IsChecked="{Binding RememberMe}" 
+                        MinimumWidthRequest="22" MinimumHeightRequest="22"
+                        HorizontalOptions="Start" VerticalOptions="End" Margin="0" />
+                    <Label Text="Lembrar-me neste dispositivo" TextColor="{StaticResource DT.TextMuted}" VerticalTextAlignment="Center"/>
+                </HorizontalStackLayout>
+
+                <Label Text="{Binding Error}" TextColor="{StaticResource DT.Danger}" IsVisible="{Binding HasError}" />
+
+                <!-- Ações -->
+                <VerticalStackLayout Spacing="10" Margin="0,6,0,0">
+                    <Button Text="Entrar" Command="{Binding LoginCommand}" Style="{StaticResource EstiloBotaoLogin}" />
+                    <Button Text="Esqueci minha senha" Style="{StaticResource DT.ButtonSecondary}" />
+                </VerticalStackLayout>
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Rodapé -->
+        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="Center" Spacing="6">
+            <Label Text="© DentalTrack" TextColor="{StaticResource DT.Primary}" />
+            <Label Text="·" TextColor="{StaticResource DT.Primary}" />
+            <Label Text="Suporte" Style="{StaticResource DT.Link}" />
+        </HorizontalStackLayout>
+    </Grid>
+
+</ContentPage>

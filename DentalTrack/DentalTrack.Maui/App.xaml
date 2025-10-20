@@ -2,13 +2,16 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DentalTrack.Maui"
-             x:Class="DentalTrack.Maui.App">
+             x:Class="DentalTrack.Maui.App"
+             xmlns:conv="clr-namespace:DentalTrack.Maui.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Controls.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <conv:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <conv:BoolToEyeTextConverter x:Key="BoolToEyeTextConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

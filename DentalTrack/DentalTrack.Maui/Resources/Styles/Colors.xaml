@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
+<!--<ResourceDictionary 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+    --><!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml --><!--
 
     <Color x:Key="Primary">#512BD4</Color>
     <Color x:Key="PrimaryDark">#ac99ea</Color>
@@ -42,4 +42,33 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+</ResourceDictionary>-->
+
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Brand -->
+    <Color x:Key="DT.Primary">#133B70</Color>
+    <!-- navy do dashboard -->
+    <Color x:Key="DT.PrimaryDark">#0E2F59</Color>
+    <Color x:Key="DT.Accent">#38D6C4</Color>
+    <!-- teal/menta -->
+    <Color x:Key="DT.AccentDark">#10B6A5</Color>
+
+    <!-- Superfícies -->
+    <Color x:Key="DT.Surface">#0F2F5E</Color>
+    <Color x:Key="DT.Card">#143C75</Color>
+    <Color x:Key="DT.Border">#2B528B</Color>
+
+    <!-- Texto -->
+    <Color x:Key="DT.Text">#EEF5FF</Color>
+    <Color x:Key="DT.TextMuted">#BFD1EE</Color>
+    <Color x:Key="DT.Danger">#FF867C</Color>
+
+    <!-- Gradiente de fundo da tela -->
+    <LinearGradientBrush x:Key="DT.BackgroundGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#D0F5F0" Offset="0.0" />
+        <GradientStop Color="#F2FCFA" Offset="1.0" />
+    </LinearGradientBrush>
 </ResourceDictionary>

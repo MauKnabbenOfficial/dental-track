@@ -4,12 +4,70 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:DentalTrack.Maui"
+    xmlns:views="clr-namespace:DentalTrack.Maui.Views"
+    xmlns:shared="clr-namespace:DentalTrack.Maui.Views.Shared"
     Shell.FlyoutBehavior="Disabled"
-    Title="DentalTrack.Maui">
+    Shell.TabBarIsVisible="False"
+    Shell.BackgroundColor="#133B70"
+    Title="DentalTrack">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!--<Shell.FlyoutHeader>
+        <Image Source="logo_dentaltrack.png" HeightRequest="100" Margin="20"/>
+    </Shell.FlyoutHeader>-->
+
+    <!-- Rota protegida (pós-login) -->
+    <!--<ShellContent Route="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}" />-->
+
+    <!-- Rota pública -->
+    <ShellContent Route="Login" ContentTemplate="{DataTemplate views:LoginPage}" />
+
+    <!--<FlyoutItem Title="Menu" FlyoutDisplayOptions="AsMultipleItems">
+        --><!--<ShellContent Title="Login" ContentTemplate="{DataTemplate views:DashboardPage}" Route="Login" />--><!--
+        <ShellContent ContentTemplate="{DataTemplate views:DashboardPage}" Route="Dashboard" />
+    </FlyoutItem>-->
+
+
+
+    <Shell.TitleView >
+        <Grid ColumnDefinitions="1*,1*,1*">
+
+            <Border 
+                HorizontalOptions="Start"
+                BackgroundColor="LightGray" 
+                HeightRequest="35" 
+                StrokeShape="RoundRectangle 35" 
+                WidthRequest="35">
+                <Image Source="logo_dentuco.png"/>
+            </Border>
+
+            <Label Grid.Column="1"
+               Text="DentalTrack"
+               TextColor="#EEF5FF"
+               HorizontalTextAlignment="Center"
+               VerticalTextAlignment="Center"
+               FontSize="18"
+               FontAttributes="Bold"/>
+
+
+            <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto" HorizontalOptions="Center" VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="12">
+                    <Label Text="Inicio" Style="{DynamicResource LabelMenu}"/>
+                    <Label Text="Pacientes" Style="{DynamicResource LabelMenu}"/>
+                    <Label Text="Procedimentos" Style="{DynamicResource LabelMenu}"/>
+                    <Label Text="Agenda" Style="{DynamicResource LabelMenu}"/>
+                    <Label Text="Registros" Style="{DynamicResource LabelMenu}"/>
+                </HorizontalStackLayout>
+                <Button Grid.Column="1"
+                    Margin="10, 0, 0, 0"
+                    Text="Sair"
+                    Padding="20,3"
+                    CornerRadius="10"
+                    Command="{Binding LogoutCommand}"
+                    Style="{DynamicResource EstiloBotaoHoverPrimary}"/>
+            </Grid>
+
+        </Grid>
+    </Shell.TitleView>
+
 
 </Shell>
