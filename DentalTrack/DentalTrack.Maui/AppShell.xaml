@@ -16,7 +16,7 @@
     </Shell.FlyoutHeader>-->
 
     <!-- Rota protegida (pós-login) -->
-    <!--<ShellContent Route="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}" />-->
+    <ShellContent Route="Dashboard" ContentTemplate="{DataTemplate views:DashboardPage}" />
 
     <!-- Rota pública -->
     <ShellContent Route="Login" ContentTemplate="{DataTemplate views:LoginPage}" />
@@ -50,20 +50,48 @@
 
 
             <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto" HorizontalOptions="Center" VerticalOptions="Center">
+                
                 <HorizontalStackLayout Spacing="12">
-                    <Label Text="Inicio" Style="{DynamicResource LabelMenu}"/>
-                    <Label Text="Pacientes" Style="{DynamicResource LabelMenu}"/>
-                    <Label Text="Procedimentos" Style="{DynamicResource LabelMenu}"/>
-                    <Label Text="Agenda" Style="{DynamicResource LabelMenu}"/>
-                    <Label Text="Registros" Style="{DynamicResource LabelMenu}"/>
+                    <Label Text="Inicio" 
+                        Style="{DynamicResource LabelMenu}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToMenuOptionCommand}" CommandParameter="Inicio" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text="Pacientes" 
+                        Style="{DynamicResource LabelMenu}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToMenuOptionCommand}" CommandParameter="Pacientes" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text="Procedimentos" Style="{DynamicResource LabelMenu}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToMenuOptionCommand}" CommandParameter="Procedimentos" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text="Agendas" 
+                        Style="{DynamicResource LabelMenu}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToMenuOptionCommand}" CommandParameter="Agendas" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Button
+                        x:Name="RegistrosButton"
+                        Text="Registros"
+                        Style="{DynamicResource LabelMenu}"
+                        BackgroundColor="Transparent"
+                        Padding="0"
+                        BorderWidth="0"
+                        Clicked="OnRegistrosClicked" />
                 </HorizontalStackLayout>
+
                 <Button Grid.Column="1"
-                    Margin="10, 0, 0, 0"
-                    Text="Sair"
-                    Padding="20,3"
-                    CornerRadius="10"
-                    Command="{Binding LogoutCommand}"
-                    Style="{DynamicResource EstiloBotaoHoverPrimary}"/>
+                Margin="10, 0, 0, 0"
+                Text="Sair"
+                Padding="20,3"
+                CornerRadius="10"
+                Command="{Binding LogoutCommand}"
+                Style="{DynamicResource EstiloBotaoHoverPrimary}"/>
             </Grid>
 
         </Grid>
