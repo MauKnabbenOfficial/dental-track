@@ -8,11 +8,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.21" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.21" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DentalTrack.Application\DentalTrack.Application.csproj" />
     <ProjectReference Include="..\DentalTrack.Domain\DentalTrack.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DependencyInjection\" />
   </ItemGroup>
 
 </Project>
