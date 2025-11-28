@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.Domain", "DentalTrack.Domain\DentalTrack.Domain.csproj", "{9C2348BA-BC0D-4812-A304-6EC3910B303F}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.Infrastructure", "DentalTrack.Infrastructure\DentalTrack.Infrastructure.csproj", "{ADAD6915-3404-47F1-9FF6-D8774F7B7341}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.WebApi", "DentalTrack.WebApi\DentalTrack.WebApi.csproj", "{D7BC6DB7-C724-45BD-8233-3BEB98A0BD33}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.Maui", "DentalTrack.Maui\DentalTrack.Maui.csproj", "{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,12 +33,6 @@ Global
 		{D7BC6DB7-C724-45BD-8233-3BEB98A0BD33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7BC6DB7-C724-45BD-8233-3BEB98A0BD33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7BC6DB7-C724-45BD-8233-3BEB98A0BD33}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53DFF007-D1D7-4B22-ACB4-0A4206A2F579}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
