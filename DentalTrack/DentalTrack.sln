@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11222.15 d18.0
+VisualStudioVersion = 18.0.11222.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.Domain", "DentalTrack.Domain\DentalTrack.Domain.csproj", "{9C2348BA-BC0D-4812-A304-6EC3910B303F}"
 EndProject
@@ -10,6 +10,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.Infrastructure", "DentalTrack.Infrastructure\DentalTrack.Infrastructure.csproj", "{ADAD6915-3404-47F1-9FF6-D8774F7B7341}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DentalTrack.WebApi", "DentalTrack.WebApi\DentalTrack.WebApi.csproj", "{D7BC6DB7-C724-45BD-8233-3BEB98A0BD33}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - API", "1 - API", "{CBCAB44D-7BE2-4428-AA84-C19E741A278B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Application", "2 - Application", "{F1CF1DD4-D3C4-49BA-8634-8692571F059E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3 - Infrastructure", "3 - Infrastructure", "{82503C70-CC46-4202-8209-ADAC503AF91E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - Domain", "4 - Domain", "{2C204141-5AB2-4805-86C2-35B0F6904FAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Web", "5 - Web", "{0CB587A0-3CF0-4BAF-B9AB-22EAE7BFA7B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +46,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9C2348BA-BC0D-4812-A304-6EC3910B303F} = {2C204141-5AB2-4805-86C2-35B0F6904FAA}
+		{BBFC9C44-EADD-4688-805C-80CDA6FE1174} = {F1CF1DD4-D3C4-49BA-8634-8692571F059E}
+		{ADAD6915-3404-47F1-9FF6-D8774F7B7341} = {82503C70-CC46-4202-8209-ADAC503AF91E}
+		{D7BC6DB7-C724-45BD-8233-3BEB98A0BD33} = {CBCAB44D-7BE2-4428-AA84-C19E741A278B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {388154C5-1877-482A-8521-5C264C30D233}

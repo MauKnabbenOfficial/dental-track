@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DentalTrack.Infrastructure.DB
 {
-    public class DbContext : Microsoft.EntityFrameworkCore.DbContext
+    public class AppDbContext : DbContext
     {
-        public DbContext(DbContextOptions<DbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         // Exemplos:
         public DbSet<Usuario> Usuarios => Set<Usuario>();
