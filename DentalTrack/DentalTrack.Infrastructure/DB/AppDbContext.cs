@@ -185,6 +185,24 @@ namespace DentalTrack.Infrastructure.DB
                 new { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Nome = "Dentista", Descricao = "Profissional dentista", Ativo = true, DtCadastro = DateTime.UtcNow },
                 new { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Nome = "Recepcionista", Descricao = "Recepcionista da clínica", Ativo = true, DtCadastro = DateTime.UtcNow }
             );
+
+            // ========== SEED DATA - USUÁRIO ADMIN MESTRE ==========
+            // Senha: admin123 (hash BCrypt válido)
+            modelBuilder.Entity<Usuario>().HasData(
+                new
+                {
+                    Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    Nome = "Administrador",
+                    Email = "admin@dentaltrack.com",
+                    SenhaHash = "$2a$11$8exE8GCa34lMzsE29t5y9ujB5Yiz5qjaFOV2MMc.Sghvs/9K3/Qey", // admin123
+                    PerfilId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    Especialidade = (string?)null,
+                    Avatar = (string?)null,
+                    EmailConfirmado = true,
+                    Ativo = true,
+                    DtCadastro = DateTime.UtcNow
+                }
+            );
         }
     }
 }

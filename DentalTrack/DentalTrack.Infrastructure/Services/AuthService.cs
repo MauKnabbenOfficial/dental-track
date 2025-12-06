@@ -23,7 +23,7 @@ namespace DentalTrack.Infrastructure.Services
         public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
         {
             var usuario = await _usuarioRepository.ObterPorEmailAsync(dto.Email);
-            
+
             if (usuario == null || !usuario.Ativo)
             {
                 return new LoginResponseDto
@@ -125,9 +125,9 @@ namespace DentalTrack.Infrastructure.Services
 
         private string GerarToken(Guid usuarioId, string email, string perfil)
         {
-            var jwtKey = _configuration["Jwt:Key"] ?? "DentalTrackSecretKey2024!@#$%^&*()_+";
-            var jwtIssuer = _configuration["Jwt:Issuer"] ?? "DentalTrack";
-            var jwtAudience = _configuration["Jwt:Audience"] ?? "DentalTrackApp";
+            var jwtKey = _configuration["JwtSettings:SecretKey"] ?? "DentalTrackSecretKey123456789012345678901234567890ABCD";
+            var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? "DentalTrack";
+            var jwtAudience = _configuration["JwtSettings:Audience"] ?? "DentalTrackApp";
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
