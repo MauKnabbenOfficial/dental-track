@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
+import { ServiceProvider } from "@/services";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import Login from "./pages/Login";
@@ -25,84 +26,86 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <DataProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Dashboard />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/pacientes"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Patients />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/modelos-procedimentos"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <ProcedureTemplates />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/atendimentos"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Treatments />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/equipe"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Team />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/financeiro"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Financial />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/etapas"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <StageTemplates />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </DataProvider>
-        </AuthProvider>
+        <ServiceProvider>
+          <AuthProvider>
+            <DataProvider>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Dashboard />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pacientes"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Patients />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/modelos-procedimentos"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <ProcedureTemplates />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/atendimentos"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Treatments />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/equipe"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Team />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/financeiro"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <Financial />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/etapas"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <StageTemplates />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </DataProvider>
+          </AuthProvider>
+        </ServiceProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
