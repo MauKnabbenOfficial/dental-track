@@ -1,14 +1,17 @@
 ﻿using DentalTrack.Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DentalTrack.Application.Interfaces
 {
     public interface IUsuarioService
     {
-        public Task<bool> CadastrarUsuarioAsync(UsuarioCreateDto dto);
+        Task<List<UsuarioDto>> ObterTodosAsync();
+        Task<UsuarioDto?> ObterPorIdAsync(Guid id);
+        Task<List<UsuarioDto>> ObterPorPerfilAsync(Guid perfilId);
+        Task<List<UsuarioDto>> ObterDentistasAsync();
+        Task<UsuarioDto> CriarAsync(UsuarioCreateDto dto);
+        Task<UsuarioDto> AtualizarAsync(Guid id, UsuarioUpdateDto dto);
+        Task<bool> ExcluirAsync(Guid id);
+        Task<bool> AtivarAsync(Guid id);
+        Task<bool> DesativarAsync(Guid id);
     }
 }
