@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useDebugValue, useState } from "react";
 import {
   Plus,
   Search,
@@ -89,7 +89,7 @@ export default function Financial() {
     getPatientById,
     getTemplateById,
     getUserById,
-    generateId,
+    currentUser,
   } = useData();
 
   const [search, setSearch] = useState("");
@@ -122,7 +122,7 @@ export default function Financial() {
       status: record.status,
       responsibleType: record.tipoResponsavel,
       paymentDate: record.dataPagamento,
-      createdBy: record.criadoPor,
+      createdBy: record.criadoPorId,
       ...record,
     }))
     .filter((r) => {
@@ -221,6 +221,7 @@ export default function Financial() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    debugger;
     if (editingRecord) {
       updateFinancialRecord(editingRecord.id, {
         ...formData,
@@ -231,14 +232,15 @@ export default function Financial() {
       });
       toast.success("Lançamento atualizado!");
     } else {
+      formData.atendimentoId =
+        formData.atendimentoId != "" ? formData.atendimentoId : null;
       addFinancialRecord({
-        id: generateId(),
         ...formData,
         pacienteId:
           formData.tipoResponsavel === "paciente"
             ? formData.pacienteId
             : undefined,
-        criadoPor: "1", // TODO: usar usuário logado
+        criadoPorId: currentUser?.nome || "Usuário desconhecido",
       });
       toast.success("Lançamento criado!");
     }
@@ -313,7 +315,7 @@ export default function Financial() {
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        amount: Number(e.target.value),
+                        valor: Number(e.target.value),
                       }))
                     }
                     required
@@ -810,9 +812,15 @@ export default function Financial() {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={paymentStatusConfig[record.status].color}
+                          className={
+                            paymentStatusConfig[record.status.toLowerCase()]
+                              .color
+                          }
                         >
-                          {paymentStatusConfig[record.status].label}
+                          {
+                            paymentStatusConfig[record.status.toLowerCase()]
+                              .label
+                          }
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
@@ -820,12 +828,12 @@ export default function Financial() {
                       </TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
-                          record.tipo === "renda"
+                          record.tipo === "receita"
                             ? "text-success"
                             : "text-destructive"
                         }`}
                       >
-                        {record.tipo === "renda" ? "+" : "-"}{" "}
+                        {record.tipo === "receita" ? "+" : "-"}{" "}
                         {formatCurrency(record.valor)}
                       </TableCell>
                       <TableCell className="text-right">

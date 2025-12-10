@@ -4,7 +4,7 @@ namespace DentalTrack.Application.DTOs
     public class LancamentoFinanceiroDto
     {
         public Guid Id { get; set; }
-        public Guid AtendimentoId { get; set; }
+        public Guid? AtendimentoId { get; set; }
         public Guid? PacienteId { get; set; }
         public string? PacienteNome { get; set; }
         public Guid CriadoPorId { get; set; }
@@ -23,7 +23,7 @@ namespace DentalTrack.Application.DTOs
     // DTO para criação
     public class LancamentoFinanceiroCreateDto
     {
-        public Guid AtendimentoId { get; set; }
+        public Guid? AtendimentoId { get; set; }
         public Guid? PacienteId { get; set; }
         public string Tipo { get; set; } = string.Empty; // "income" ou "expense"
         public decimal Valor { get; set; }

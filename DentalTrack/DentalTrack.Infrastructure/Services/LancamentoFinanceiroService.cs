@@ -77,11 +77,20 @@ namespace DentalTrack.Infrastructure.Services
             var tipoResponsavel = ParseTipoResponsavel(dto.TipoResponsavel);
 
             var lancamento = new LancamentoFinanceiro(
-                dto.AtendimentoId, usuarioId, tipo, dto.Valor,
+                dto.AtendimentoId, // Directly pass the nullable Guid
+                usuarioId, tipo, dto.Valor,
                 dto.DataLancamento, dto.Descricao, dto.Categoria,
                 tipoResponsavel, dto.PacienteId);
 
-            await _lancamentoRepository.AdicionarAsync(lancamento);
+            try
+            {
+                await _lancamentoRepository.AdicionarAsync(lancamento);
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
             var lancamentoCompleto = await _lancamentoRepository.ObterCompletoAsync(lancamento.Id);
             return MapToDto(lancamentoCompleto!);
         }

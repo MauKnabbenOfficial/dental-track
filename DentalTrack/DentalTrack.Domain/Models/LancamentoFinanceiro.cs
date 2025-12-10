@@ -6,7 +6,7 @@ namespace DentalTrack.Domain.Models
     public class LancamentoFinanceiro
     {
         public Guid Id { get; private set; }
-        public Guid AtendimentoId { get; private set; }
+        public Guid? AtendimentoId { get; private set; } // AtendimentoId agora é opcional
         public Guid? PacienteId { get; private set; }
         public Guid CriadoPorId { get; private set; }
         public TipoLancamento Tipo { get; private set; }
@@ -20,13 +20,13 @@ namespace DentalTrack.Domain.Models
         public DateTime DtCadastro { get; private set; }
 
         // Navegação
-        public Atendimento Atendimento { get; private set; } = null!;
+        public Atendimento? Atendimento { get; private set; } // Atendimento pode ser nulo
         public Paciente? Paciente { get; private set; }
         public Usuario CriadoPor { get; private set; } = null!;
 
         // Construtor para criação
         public LancamentoFinanceiro(
-            Guid atendimentoId,
+            Guid? atendimentoId, // AtendimentoId é opcional
             Guid criadoPorId,
             TipoLancamento tipo,
             decimal valor,

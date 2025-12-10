@@ -23,6 +23,7 @@ import {
   ProcedureTemplate,
   ProcedureTemplateStage,
 } from "@/types/backendDtos";
+import { useAuth } from "./AuthContext";
 
 // Extended FinancialRecord with new fields
 export interface ExtendedFinancialRecord extends FinancialRecord {}
@@ -115,6 +116,9 @@ interface DataContextType {
   // Refresh data
   refreshData: () => Promise<void>;
   resetAllData: () => void;
+
+  // Current user
+  currentUser: User | null;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -185,6 +189,9 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   const treatmentStageService = services.treatmentStageService;
   const financialService = services.financialService;
 
+  // Auth context
+  const { user: authUser } = useAuth();
+
   // State
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
@@ -204,6 +211,7 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   const [financialRecords, setFinancialRecords] = useState<
     ExtendedFinancialRecord[]
   >([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(authUser);
 
   // Load all data from API
   const refreshData = useCallback(async () => {
@@ -365,6 +373,11 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
 
     refreshData();
   }, [refreshData]);
+
+  // Fetch the current user (example: from userService or authService)
+  useEffect(() => {
+    setCurrentUser(authUser);
+  }, [authUser]);
 
   const generateId = () =>
     `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -829,6 +842,7 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
         generateId,
         refreshData,
         resetAllData,
+        currentUser, // Adicionado o currentUser aqui
       }}
     >
       {children}

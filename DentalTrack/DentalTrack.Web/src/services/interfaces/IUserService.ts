@@ -1,4 +1,4 @@
-import { User } from "@/data/mockData";
+import { User } from "@/types/backendDtos";
 import { IBaseService } from "./IBaseService";
 
 /**
@@ -8,7 +8,7 @@ export interface IUserService extends IBaseService<User> {
   /**
    * Busca usuários por role
    */
-  getByRole(role: User["role"]): Promise<User[]>;
+  getByRole(role: User["perfilNome"]): Promise<User[]>;
 
   /**
    * Busca dentistas (atalho para getByRole('dentist'))

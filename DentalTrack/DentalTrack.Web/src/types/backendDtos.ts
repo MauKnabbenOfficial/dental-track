@@ -89,7 +89,7 @@ export interface LancamentoFinanceiroDto {
   atendimentoId?: string;
   pacienteId?: string;
   pacienteNome?: string;
-  criadoPor?: string;
+  criadoPorId?: string;
   tipo?: string;
   valor?: number;
   dataLancamento?: string;

@@ -166,6 +166,7 @@ namespace DentalTrack.Infrastructure.DB
                 entity.HasOne(e => e.Atendimento)
                     .WithMany(a => a.LancamentosFinanceiros)
                     .HasForeignKey(e => e.AtendimentoId)
+                    .IsRequired(false) // Allow null values
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Paciente)
