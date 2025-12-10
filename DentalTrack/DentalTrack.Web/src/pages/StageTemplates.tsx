@@ -53,8 +53,8 @@ export default function StageTemplates() {
 
   const filteredTemplates = stageTemplates.filter(
     (t) =>
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.description.toLowerCase().includes(search.toLowerCase())
+      (t.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.description || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const resetForm = () => {

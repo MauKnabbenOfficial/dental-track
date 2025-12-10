@@ -95,27 +95,33 @@ export default function ProcedureTemplates() {
   const [editingStage, setEditingStage] =
     useState<ProcedureTemplateStage | null>(null);
   const [isStageFormOpen, setIsStageFormOpen] = useState(false);
-  const [stageFormData, setStageFormData] = useState({
-    name: "",
-    description: "",
-    checklistItems: [] as string[],
+  const [stageFormData, setStageFormData] = useState<{
+    nome: string;
+    descricao: string;
+    itensChecklist: string[];
+  }>({
+    nome: "",
+    descricao: "",
+    itensChecklist: [] as string[],
   });
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [deleteStageId, setDeleteStageId] = useState<string | null>(null);
 
   // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    baseCost: 0,
-    estimatedDuration: "",
-    description: "",
+  const [formData, setFormData] = useState<
+    Omit<ProcedureTemplate, "id" | "etapas" | "ativo" | "dtCadastro">
+  >({
+    nome: "",
+    categoria: "",
+    custoBase: 0,
+    duracaoEstimada: "",
+    descricao: "",
   });
 
   const filteredTemplates = procedureTemplates.filter(
     (t) =>
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.category.toLowerCase().includes(search.toLowerCase())
+      (t.nome || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.categoria || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const formatCurrency = (value: number) =>
@@ -137,11 +143,11 @@ export default function ProcedureTemplates() {
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      category: "",
-      baseCost: 0,
-      estimatedDuration: "",
-      description: "",
+      nome: "",
+      categoria: "",
+      custoBase: 0,
+      duracaoEstimada: "",
+      descricao: "",
     });
     setEditingTemplate(null);
   };
@@ -149,11 +155,11 @@ export default function ProcedureTemplates() {
   const openEditDialog = (template: ProcedureTemplate) => {
     setEditingTemplate(template);
     setFormData({
-      name: template.name,
-      category: template.category,
-      baseCost: template.baseCost,
-      estimatedDuration: template.estimatedDuration,
-      description: template.description,
+      nome: template.nome,
+      categoria: template.categoria,
+      custoBase: template.custoBase,
+      duracaoEstimada: template.duracaoEstimada,
+      descricao: template.descricao,
     });
     setIsFormOpen(true);
   };
@@ -165,10 +171,11 @@ export default function ProcedureTemplates() {
       updateProcedureTemplate(editingTemplate.id, formData);
       toast.success("Modelo atualizado!");
     } else {
-      addProcedureTemplate({
+      const newTemplate = {
         id: generateId(),
         ...formData,
-      });
+      } as ProcedureTemplate;
+      addProcedureTemplate(newTemplate);
       toast.success("Modelo criado!");
     }
 
@@ -199,22 +206,22 @@ export default function ProcedureTemplates() {
       // Use existing template - copy data from template
       addProcedureTemplateStage({
         id: newStageId,
-        templateId,
-        name: stageTemplate.name,
-        orderIndex: newOrderIndex,
-        description: stageTemplate.description,
-        checklistItems: [...stageTemplate.checklistItems],
+        modeloProcedimentoId: templateId,
+        nome: stageTemplate.name,
+        ordemExibicao: newOrderIndex,
+        descricao: stageTemplate.description,
+        itensChecklist: [...stageTemplate.checklistItems],
       });
       toast.success("Etapa adicionada a partir do modelo!");
     } else if (stageSearchValue.trim()) {
       // Create custom stage with the typed name
       const newStage: ProcedureTemplateStage = {
         id: newStageId,
-        templateId,
-        name: stageSearchValue.trim(),
-        orderIndex: newOrderIndex,
-        description: "",
-        checklistItems: [],
+        modeloProcedimentoId: templateId,
+        nome: stageSearchValue.trim(),
+        ordemExibicao: newOrderIndex,
+        descricao: "",
+        itensChecklist: [],
       };
       addProcedureTemplateStage(newStage);
       toast.success("Etapa criada! Complete os detalhes.");
@@ -222,9 +229,9 @@ export default function ProcedureTemplates() {
       // Open edit modal to complete the stage details
       setEditingStage(newStage);
       setStageFormData({
-        name: newStage.name,
-        description: "",
-        checklistItems: [],
+        nome: newStage.nome,
+        descricao: "",
+        itensChecklist: [],
       });
       setIsStageFormOpen(true);
     } else {
@@ -240,13 +247,15 @@ export default function ProcedureTemplates() {
     deleteProcedureTemplateStage(stageId);
     toast.success("Etapa removida!");
     // Reorder remaining stages
-    const stage = procedureTemplateStages.find((s) => s.id === stageId);
+    const stage = procedureTemplateStages.find((s) => s.id === stageId) as
+      | ProcedureTemplateStage
+      | undefined;
     if (stage) {
-      const remainingStages = getStagesByTemplateId(stage.templateId).filter(
-        (s) => s.id !== stageId
-      );
+      const remainingStages = getStagesByTemplateId(
+        stage.modeloProcedimentoId
+      ).filter((s) => s.id !== stageId);
       remainingStages.forEach((s, index) => {
-        updateProcedureTemplateStage(s.id, { orderIndex: index + 1 });
+        updateProcedureTemplateStage(s.id, { ordemExibicao: index + 1 });
       });
     }
     setDeleteStageId(null);
@@ -257,7 +266,7 @@ export default function ProcedureTemplates() {
     stage: ProcedureTemplateStage,
     direction: "up" | "down"
   ) => {
-    const templateStages = getStagesByTemplateId(stage.templateId);
+    const templateStages = getStagesByTemplateId(stage.modeloProcedimentoId);
     const currentIndex = templateStages.findIndex((s) => s.id === stage.id);
 
     if (direction === "up" && currentIndex > 0) {
@@ -278,9 +287,9 @@ export default function ProcedureTemplates() {
   const openStageEditDialog = (stage: ProcedureTemplateStage) => {
     setEditingStage(stage);
     setStageFormData({
-      name: stage.name,
-      description: stage.description,
-      checklistItems: [...stage.checklistItems],
+      nome: stage.nome,
+      descricao: stage.descricao,
+      itensChecklist: [...(stage.itensChecklist || [])],
     });
     setIsStageFormOpen(true);
   };
@@ -298,7 +307,7 @@ export default function ProcedureTemplates() {
 
   // Reset stage form
   const resetStageForm = () => {
-    setStageFormData({ name: "", description: "", checklistItems: [] });
+    setStageFormData({ nome: "", descricao: "", itensChecklist: [] });
     setNewChecklistItem("");
     setEditingStage(null);
   };
@@ -308,7 +317,7 @@ export default function ProcedureTemplates() {
     if (newChecklistItem.trim()) {
       setStageFormData((prev) => ({
         ...prev,
-        checklistItems: [...prev.checklistItems, newChecklistItem.trim()],
+        itensChecklist: [...prev.itensChecklist, newChecklistItem.trim()],
       }));
       setNewChecklistItem("");
     }
@@ -318,7 +327,9 @@ export default function ProcedureTemplates() {
   const removeChecklistItem = (index: number) => {
     setStageFormData((prev) => ({
       ...prev,
-      checklistItems: prev.checklistItems.filter((_, i) => i !== index),
+      itensChecklist: prev.itensChecklist.filter(
+        (_: string, i: number) => i !== index
+      ),
     }));
   };
 
@@ -372,9 +383,9 @@ export default function ProcedureTemplates() {
                   <Label>Nome do Procedimento</Label>
                   <Input
                     placeholder="Ex: Implante Dentário Unitário"
-                    value={formData.name}
+                    value={formData.nome}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                      setFormData((prev) => ({ ...prev, nome: e.target.value }))
                     }
                     required
                   />
@@ -383,11 +394,11 @@ export default function ProcedureTemplates() {
                   <Label>Categoria</Label>
                   <Input
                     placeholder="Ex: Implantodontia"
-                    value={formData.category}
+                    value={formData.categoria}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        category: e.target.value,
+                        categoria: e.target.value,
                       }))
                     }
                     required
@@ -398,11 +409,11 @@ export default function ProcedureTemplates() {
                   <Input
                     type="number"
                     placeholder="0,00"
-                    value={formData.baseCost}
+                    value={formData.custoBase}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        baseCost: Number(e.target.value),
+                        custoBase: Number(e.target.value),
                       }))
                     }
                     required
@@ -412,11 +423,11 @@ export default function ProcedureTemplates() {
                   <Label>Duração Estimada</Label>
                   <Input
                     placeholder="Ex: 3-6 meses"
-                    value={formData.estimatedDuration}
+                    value={formData.duracaoEstimada}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        estimatedDuration: e.target.value,
+                        duracaoEstimada: e.target.value,
                       }))
                     }
                   />
@@ -425,11 +436,11 @@ export default function ProcedureTemplates() {
                   <Label>Descrição</Label>
                   <Textarea
                     placeholder="Descreva o procedimento..."
-                    value={formData.description}
+                    value={formData.descricao}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        description: e.target.value,
+                        descricao: e.target.value,
                       }))
                     }
                     rows={3}
@@ -500,29 +511,29 @@ export default function ProcedureTemplates() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
                             <h3 className="text-lg font-semibold">
-                              {template.name}
+                              {template.nome}
                             </h3>
                             <Badge
                               className={
-                                categoryColors[template.category] || "bg-muted"
+                                categoryColors[template.categoria] || "bg-muted"
                               }
                             >
-                              {template.category}
+                              {template.categoria}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {template.description}
+                            {template.descricao}
                           </p>
                           <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <DollarSign className="h-4 w-4" />
                               <span className="font-medium text-foreground">
-                                {formatCurrency(template.baseCost)}
+                                {formatCurrency(template.custoBase || 0)}
                               </span>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <Clock className="h-4 w-4" />
-                              <span>{template.estimatedDuration}</span>
+                              <span>{template.duracaoEstimada}</span>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <ListChecks className="h-4 w-4" />
@@ -721,7 +732,7 @@ export default function ProcedureTemplates() {
                               <ChevronUp className="h-4 w-4" />
                             </Button>
                             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                              {stage.orderIndex}
+                              {stage.ordemExibicao}
                             </div>
                             <Button
                               variant="ghost"
@@ -734,25 +745,28 @@ export default function ProcedureTemplates() {
                             </Button>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium">{stage.name}</p>
+                            <p className="font-medium">{stage.nome}</p>
                             <p className="text-sm text-muted-foreground">
-                              {stage.description || (
+                              {stage.descricao || (
                                 <span className="italic">Sem descrição</span>
                               )}
                             </p>
-                            {stage.checklistItems.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {stage.checklistItems.map((item, i) => (
-                                  <Badge
-                                    key={i}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {item}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                            {stage.itensChecklist &&
+                              stage.itensChecklist.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {stage.itensChecklist.map(
+                                    (item: string, i: number) => (
+                                      <Badge
+                                        key={i}
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {item}
+                                      </Badge>
+                                    )
+                                  )}
+                                </div>
+                              )}
                           </div>
                           <div className="flex flex-col gap-1">
                             <Button
@@ -856,11 +870,11 @@ export default function ProcedureTemplates() {
               <Label>Nome da Etapa</Label>
               <Input
                 placeholder="Ex: Consulta Inicial"
-                value={stageFormData.name}
+                value={stageFormData.nome}
                 onChange={(e) =>
                   setStageFormData((prev) => ({
                     ...prev,
-                    name: e.target.value,
+                    nome: e.target.value,
                   }))
                 }
                 required
@@ -870,11 +884,11 @@ export default function ProcedureTemplates() {
               <Label>Descrição</Label>
               <Textarea
                 placeholder="Descreva a etapa..."
-                value={stageFormData.description}
+                value={stageFormData.descricao}
                 onChange={(e) =>
                   setStageFormData((prev) => ({
                     ...prev,
-                    description: e.target.value,
+                    descricao: e.target.value,
                   }))
                 }
                 rows={3}
@@ -900,21 +914,24 @@ export default function ProcedureTemplates() {
                   Adicionar
                 </Button>
               </div>
-              {stageFormData.checklistItems.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {stageFormData.checklistItems.map((item, idx) => (
-                    <Badge key={idx} variant="secondary" className="gap-1">
-                      {item}
-                      <button
-                        type="button"
-                        onClick={() => removeChecklistItem(idx)}
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
+              {stageFormData.itensChecklist &&
+                stageFormData.itensChecklist.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {stageFormData.itensChecklist.map(
+                      (item: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="gap-1">
+                          {item}
+                          <button
+                            type="button"
+                            onClick={() => removeChecklistItem(idx)}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      )
+                    )}
+                  </div>
+                )}
             </div>
             <DialogFooter>
               <Button

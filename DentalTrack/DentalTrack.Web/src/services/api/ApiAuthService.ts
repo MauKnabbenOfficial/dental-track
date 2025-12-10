@@ -3,32 +3,77 @@ import { IAuthService, AuthResult } from "../interfaces/IAuthService";
 import { apiClient, TokenManager } from "../http";
 
 /**
+ * Interface que representa a resposta da API de login (campos em português)
+ */
+interface LoginApiResponse {
+  sucesso: boolean;
+  mensagem?: string;
+  usuario?: {
+    id: string;
+    nome: string;
+    email: string;
+    perfilId?: string;
+    perfilNome?: string;
+    especialidade?: string;
+    avatar?: string;
+    ativo?: boolean;
+    dtCadastro?: string;
+  };
+  token?: string;
+  refreshToken?: string;
+  expiraEm?: string;
+}
+
+/**
+ * Map API user (Portuguese fields) to frontend `User` (alias to `Usuario`).
+ * We intentionally avoid normalizing enum/text values here — keep API fields as-is.
+ */
+export function mapApiUserToUser(
+  apiUser: LoginApiResponse["usuario"]
+): User | undefined {
+  if (!apiUser) return undefined;
+  return apiUser as unknown as User;
+}
+
+/**
  * Implementação API do serviço de Autenticação
  */
 export const ApiAuthService: IAuthService = {
   async login(email: string, password: string): Promise<AuthResult> {
     try {
-      const result = await apiClient.post<{
-        user: User;
-        token: string;
-        refreshToken: string;
-        expiresAt: string;
-      }>("/auth/login", { email, password }, { withAuth: false });
+      const result = await apiClient.post<LoginApiResponse>(
+        "/auth/login",
+        { email, senha: password },
+        { withAuth: false }
+      );
+
+      if (!result.sucesso || !result.token) {
+        return {
+          success: false,
+          error: result.mensagem || "Erro ao fazer login",
+        };
+      }
+
+      // Mapeia usuário da API para formato do frontend (mantendo campos em PT)
+      const user = mapApiUserToUser(result.usuario);
 
       // Salva tokens
       TokenManager.setToken(result.token);
-      TokenManager.setRefreshToken(result.refreshToken);
-      localStorage.setItem(
-        "dentaltrack_auth_user",
-        JSON.stringify(result.user)
-      );
+      if (result.refreshToken) {
+        TokenManager.setRefreshToken(result.refreshToken);
+      }
+
+      if (user) {
+        // Nota: não gravamos mais o usuário autenticado em localStorage;
+        // mantemos apenas tokens no storage (TokenManager).
+      }
 
       return {
         success: true,
-        user: result.user,
+        user,
         token: result.token,
         refreshToken: result.refreshToken,
-        expiresAt: result.expiresAt,
+        expiresAt: result.expiraEm,
       };
     } catch (error: any) {
       return {
@@ -45,23 +90,19 @@ export const ApiAuthService: IAuthService = {
       // Ignora erro de logout
     } finally {
       TokenManager.clearTokens();
-      localStorage.removeItem("dentaltrack_auth_user");
     }
   },
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      // Primeiro tenta do cache local
-      const cached = localStorage.getItem("dentaltrack_auth_user");
-      if (cached) {
-        return JSON.parse(cached);
-      }
-
-      // Se não tiver cache, busca da API
+      // Sempre busca do backend quando houver token válido (não usamos cache local)
       if (TokenManager.hasValidToken()) {
-        const user = await apiClient.get<User>("/auth/me");
-        localStorage.setItem("dentaltrack_auth_user", JSON.stringify(user));
-        return user;
+        const apiResp = await apiClient.get<any>("/auth/me");
+        if (apiResp && apiResp.perfilNome) {
+          const user = mapApiUserToUser(apiResp as LoginApiResponse["usuario"]);
+          return user ?? null;
+        }
+        return apiResp as User;
       }
 
       return null;
@@ -87,7 +128,7 @@ export const ApiAuthService: IAuthService = {
       }
 
       const result = await apiClient.post<{
-        user: User;
+        user: any;
         token: string;
         refreshToken: string;
         expiresAt: string;
@@ -96,10 +137,17 @@ export const ApiAuthService: IAuthService = {
       // Atualiza tokens
       TokenManager.setToken(result.token);
       TokenManager.setRefreshToken(result.refreshToken);
-      localStorage.setItem(
-        "dentaltrack_auth_user",
-        JSON.stringify(result.user)
-      );
+      // map user if needed
+      const mappedUser =
+        result.user && result.user.perfilNome
+          ? mapApiUserToUser(result.user as LoginApiResponse["usuario"])
+          : (result.user as User);
+      if (mappedUser) {
+        localStorage.setItem(
+          "dentaltrack_auth_user",
+          JSON.stringify(mappedUser)
+        );
+      }
 
       return {
         success: true,

@@ -13,18 +13,8 @@ import {
 import { IFinancialService } from "./interfaces/IFinancialService";
 import { IAuthService } from "./interfaces/IAuthService";
 
-// Mock implementations
-import {
-  MockUserService,
-  MockPatientService,
-  MockProcedureTemplateService,
-  MockProcedureTemplateStageService,
-  MockStageTemplateService,
-  MockTreatmentService,
-  MockTreatmentStageService,
-  MockFinancialService,
-  MockAuthService,
-} from "./mock";
+// Note: mock implementations are kept in the repo for reference but
+// ServiceProvider will default to API implementation only.
 
 // API implementations
 import {
@@ -79,17 +69,17 @@ function createServiceRegistry(
     };
   }
 
-  // Default: Mock
+  // Default: API (do not use mocks at runtime)
   return {
-    userService: MockUserService,
-    patientService: MockPatientService,
-    procedureTemplateService: MockProcedureTemplateService,
-    procedureTemplateStageService: MockProcedureTemplateStageService,
-    stageTemplateService: MockStageTemplateService,
-    treatmentService: MockTreatmentService,
-    treatmentStageService: MockTreatmentStageService,
-    financialService: MockFinancialService,
-    authService: MockAuthService,
+    userService: ApiUserService,
+    patientService: ApiPatientService,
+    procedureTemplateService: ApiProcedureTemplateService,
+    procedureTemplateStageService: ApiProcedureTemplateStageService,
+    stageTemplateService: ApiStageTemplateService,
+    treatmentService: ApiTreatmentService,
+    treatmentStageService: ApiTreatmentStageService,
+    financialService: ApiFinancialService,
+    authService: ApiAuthService,
   };
 }
 
@@ -120,16 +110,8 @@ function getImplementationType(
     return forceType;
   }
 
-  // Verifica variável de ambiente
-  const useMock = import.meta.env.VITE_USE_MOCK;
-
-  // Se VITE_USE_MOCK for 'false', usa API
-  if (useMock === "false") {
-    return "api";
-  }
-
-  // Default: usa Mock
-  return "mock";
+  // Default to API only. Mocks are not used at runtime.
+  return "api";
 }
 
 /**
@@ -150,7 +132,6 @@ function getImplementationType(
 export function ServiceProvider({ children, forceType }: ServiceProviderProps) {
   const services = useMemo(() => {
     const type = getImplementationType(forceType);
-    console.log(`[ServiceProvider] Using ${type.toUpperCase()} implementation`);
     return createServiceRegistry(type);
   }, [forceType]);
 

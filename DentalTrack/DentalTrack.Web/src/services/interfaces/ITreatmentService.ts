@@ -75,6 +75,6 @@ export interface TreatmentFilterOptions extends FilterOptions {
   patientId?: string;
   dentistId?: string;
   status?: Treatment["status"];
-  startDateFrom?: string;
-  startDateTo?: string;
+  dataInicioFrom?: string;
+  dataInicioTo?: string;
 }

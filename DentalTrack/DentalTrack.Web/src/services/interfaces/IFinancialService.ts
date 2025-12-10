@@ -50,8 +50,8 @@ export interface IFinancialService
    * Calcula totais por período
    */
   getTotalsByPeriod(
-    startDate: string,
-    endDate: string
+    dataInicio: string,
+    dataFim: string
   ): Promise<FinancialSummary>;
 }
 
@@ -61,8 +61,8 @@ export interface FinancialFilterOptions extends FilterOptions {
   type?: ExtendedFinancialRecord["type"];
   status?: ExtendedFinancialRecord["status"];
   responsibleType?: ExtendedFinancialRecord["responsibleType"];
-  dateFrom?: string;
-  dateTo?: string;
+  dataInicioFrom?: string;
+  dataInicioTo?: string;
   category?: string;
 }
 

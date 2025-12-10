@@ -1,51 +1,100 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  email: string;
-  name: string;
-  role: string;
-}
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
+import { useAuthService } from "@/services";
+import { User } from "@/data/mockData";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  isLoading: boolean;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const MOCK_USER = {
-  email: 'admin@dentaltrack.com',
-  password: 'admin',
-  name: 'Dr. Carlos Silva',
-  role: 'admin'
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('dentaltrack_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const authService = useAuthService();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    // Mock authentication
-    if (email === MOCK_USER.email && password === MOCK_USER.password) {
-      const userData = { email: MOCK_USER.email, name: MOCK_USER.name, role: MOCK_USER.role };
-      setUser(userData);
-      localStorage.setItem('dentaltrack_user', JSON.stringify(userData));
-      return { success: true };
+  // Verifica se já existe usuário autenticado ao carregar
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error("Erro ao verificar autenticação:", error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [authService]);
+
+  const login = useCallback(
+    async (
+      email: string,
+      password: string
+    ): Promise<{ success: boolean; error?: string }> => {
+      try {
+        const result = await authService.login(email, password);
+
+        if (result.success && result.user) {
+          setUser(result.user);
+          return { success: true };
+        }
+
+        return {
+          success: false,
+          error: result.error || "E-mail ou senha inválidos",
+        };
+      } catch (error: any) {
+        console.error("Erro no login:", error);
+        return {
+          success: false,
+          error: error.message || "Erro ao fazer login",
+        };
+      }
+    },
+    [authService]
+  );
+
+  const logout = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error("Erro no logout:", error);
+    } finally {
+      setUser(null);
     }
-    return { success: false, error: 'E-mail ou senha inválidos' };
-  };
+  }, [authService]);
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('dentaltrack_user');
-  };
+  // Mostra loading enquanto verifica autenticação inicial
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated: !!user, isLoading, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -54,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

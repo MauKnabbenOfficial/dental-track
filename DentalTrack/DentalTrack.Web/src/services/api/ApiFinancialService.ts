@@ -12,13 +12,13 @@ import { apiClient, buildQueryString } from "../http";
  */
 export const ApiFinancialService: IFinancialService = {
   async getAll(): Promise<ExtendedFinancialRecord[]> {
-    return apiClient.get<ExtendedFinancialRecord[]>("/financial-records");
+    return apiClient.get<ExtendedFinancialRecord[]>("/lancamentosfinanceiros");
   },
 
   async getById(id: string): Promise<ExtendedFinancialRecord | undefined> {
     try {
       return await apiClient.get<ExtendedFinancialRecord>(
-        `/financial-records/${id}`
+        `/lancamentosfinanceiros/${id}`
       );
     } catch (error: any) {
       if (error.status === 404) return undefined;
@@ -29,7 +29,10 @@ export const ApiFinancialService: IFinancialService = {
   async create(
     data: Omit<ExtendedFinancialRecord, "id">
   ): Promise<ExtendedFinancialRecord> {
-    return apiClient.post<ExtendedFinancialRecord>("/financial-records", data);
+    return apiClient.post<ExtendedFinancialRecord>(
+      "/lancamentosfinanceiros",
+      data
+    );
   },
 
   async update(
@@ -37,13 +40,13 @@ export const ApiFinancialService: IFinancialService = {
     data: Partial<ExtendedFinancialRecord>
   ): Promise<ExtendedFinancialRecord> {
     return apiClient.put<ExtendedFinancialRecord>(
-      `/financial-records/${id}`,
+      `/lancamentosfinanceiros/${id}`,
       data
     );
   },
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`/financial-records/${id}`);
+    return apiClient.delete(`/lancamentosfinanceiros/${id}`);
   },
 
   async search(
@@ -51,7 +54,7 @@ export const ApiFinancialService: IFinancialService = {
   ): Promise<PaginatedResult<ExtendedFinancialRecord>> {
     const query = buildQueryString(filters);
     return apiClient.get<PaginatedResult<ExtendedFinancialRecord>>(
-      `/financial-records/search${query}`
+      `/lancamentosfinanceiros/buscar${query}`
     );
   },
 
@@ -59,22 +62,22 @@ export const ApiFinancialService: IFinancialService = {
     treatmentId: string
   ): Promise<ExtendedFinancialRecord[]> {
     return apiClient.get<ExtendedFinancialRecord[]>(
-      `/treatments/${treatmentId}/financial-records`
+      `/lancamentosfinanceiros/atendimento/${treatmentId}`
     );
   },
 
   async getByPatientId(patientId: string): Promise<ExtendedFinancialRecord[]> {
     return apiClient.get<ExtendedFinancialRecord[]>(
-      `/patients/${patientId}/financial-records`
+      `/lancamentosfinanceiros/paciente/${patientId}`
     );
   },
 
   async getByType(
     type: ExtendedFinancialRecord["type"]
   ): Promise<ExtendedFinancialRecord[]> {
-    const query = buildQueryString({ type });
+    const query = buildQueryString({ tipo: type });
     return apiClient.get<ExtendedFinancialRecord[]>(
-      `/financial-records${query}`
+      `/lancamentosfinanceiros${query}`
     );
   },
 
@@ -83,7 +86,7 @@ export const ApiFinancialService: IFinancialService = {
   ): Promise<ExtendedFinancialRecord[]> {
     const query = buildQueryString({ status });
     return apiClient.get<ExtendedFinancialRecord[]>(
-      `/financial-records${query}`
+      `/lancamentosfinanceiros${query}`
     );
   },
 
@@ -93,21 +96,21 @@ export const ApiFinancialService: IFinancialService = {
     paymentDate?: string
   ): Promise<ExtendedFinancialRecord> {
     return apiClient.patch<ExtendedFinancialRecord>(
-      `/financial-records/${id}/payment-status`,
+      `/lancamentosfinanceiros/${id}/status-pagamento`,
       {
         status,
-        paymentDate,
+        dataPagamento: paymentDate,
       }
     );
   },
 
   async getTotalsByPeriod(
-    startDate: string,
-    endDate: string
+    dataInicio: string,
+    dataFim: string
   ): Promise<FinancialSummary> {
-    const query = buildQueryString({ startDate, endDate });
+    const query = buildQueryString({ dataInicio, dataFim });
     return apiClient.get<FinancialSummary>(
-      `/financial-records/summary${query}`
+      `/lancamentosfinanceiros/resumo${query}`
     );
   },
 };

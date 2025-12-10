@@ -1,0 +1,876 @@
+{
+  "usuarios": [
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "nome": "Dr. Carlos Silva",
+      "email": "carlos@dentaltrack.com",
+      "senhaHash": "$2a$11$8exE8GCa34lMzsE29t5y9ujB5Yiz5qjaFOV2MMc.Sghvs/9K3/Qey",
+      "perfilId": "22222222-2222-2222-2222-222222222222",
+      "especialidade": "Implantodontia"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "nome": "Dra. Marina Santos",
+      "email": "marina@dentaltrack.com",
+      "senhaHash": "$2a$11$8exE8GCa34lMzsE29t5y9ujB5Yiz5qjaFOV2MMc.Sghvs/9K3/Qey",
+      "perfilId": "22222222-2222-2222-2222-222222222222",
+      "especialidade": "Ortodontia"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "nome": "Dr. Roberto Lima",
+      "email": "roberto@dentaltrack.com",
+      "senhaHash": "$2a$11$8exE8GCa34lMzsE29t5y9ujB5Yiz5qjaFOV2MMc.Sghvs/9K3/Qey",
+      "perfilId": "22222222-2222-2222-2222-222222222222",
+      "especialidade": "Endodontia"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "nome": "Ana Paula Costa",
+      "email": "ana@dentaltrack.com",
+      "senhaHash": "$2a$11$8exE8GCa34lMzsE29t5y9ujB5Yiz5qjaFOV2MMc.Sghvs/9K3/Qey",
+      "perfilId": "33333333-3333-3333-3333-333333333333",
+      "especialidade": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "nome": "Juliana Mendes",
+      "email": "juliana@dentaltrack.com",
+      "senhaHash": "$2a$11$8exE8GCa34lMzsE29t5y9ujB5Yiz5qjaFOV2MMc.Sghvs/9K3/Qey",
+      "perfilId": "33333333-3333-3333-3333-333333333333",
+      "especialidade": null
+    }
+  ],
+  "pacientes": [
+    {
+      "id": "10000000-0000-0000-0000-000000000001",
+      "nome": "João Pedro Oliveira",
+      "cpf": "123.456.789-00",
+      "telefone": "(11) 99999-1234",
+      "email": "joao@email.com",
+      "dataNascimento": "1985-03-15",
+      "convenioId": "UNIMED12345",
+      "convenioNome": "Unimed",
+      "cep": "01310-100",
+      "logradouro": "Rua das Flores",
+      "numero": "123",
+      "complemento": "Apto 45",
+      "bairro": "Jardins",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000002",
+      "nome": "Maria Fernanda Silva",
+      "cpf": "234.567.890-11",
+      "telefone": "(11) 98888-5678",
+      "email": "maria@email.com",
+      "dataNascimento": "1990-07-22",
+      "convenioId": null,
+      "convenioNome": "Particular",
+      "cep": "01310-200",
+      "logradouro": "Av. Paulista",
+      "numero": "1000",
+      "complemento": null,
+      "bairro": "Bela Vista",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000003",
+      "nome": "Carlos Eduardo Souza",
+      "cpf": "345.678.901-22",
+      "telefone": "(11) 97777-9012",
+      "email": "carlos.souza@email.com",
+      "dataNascimento": "1978-11-08",
+      "convenioId": "AMIL67890",
+      "convenioNome": "Amil",
+      "cep": "01305-100",
+      "logradouro": "Rua Augusta",
+      "numero": "500",
+      "complemento": "Sala 12",
+      "bairro": "Consolação",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000004",
+      "nome": "Ana Beatriz Costa",
+      "cpf": "456.789.012-33",
+      "telefone": "(11) 96666-3456",
+      "email": "ana.b@email.com",
+      "dataNascimento": "1995-01-30",
+      "convenioId": null,
+      "convenioNome": "Bradesco Saúde",
+      "cep": "01426-001",
+      "logradouro": "Rua Oscar Freire",
+      "numero": "200",
+      "complemento": null,
+      "bairro": "Pinheiros",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000005",
+      "nome": "Roberto Almeida",
+      "cpf": "567.890.123-44",
+      "telefone": "(11) 95555-7890",
+      "email": "roberto.almeida@email.com",
+      "dataNascimento": "1982-06-12",
+      "convenioId": null,
+      "convenioNome": "Particular",
+      "cep": "01419-002",
+      "logradouro": "Alameda Santos",
+      "numero": "800",
+      "complemento": null,
+      "bairro": "Cerqueira César",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000006",
+      "nome": "Fernanda Lima",
+      "cpf": "678.901.234-55",
+      "telefone": "(11) 94444-1234",
+      "email": "fernanda@email.com",
+      "dataNascimento": "1988-09-25",
+      "convenioId": "SULAMERICA11111",
+      "convenioNome": "SulAmérica",
+      "cep": "01414-001",
+      "logradouro": "Rua Haddock Lobo",
+      "numero": "350",
+      "complemento": "Bloco B",
+      "bairro": "Jardim Paulista",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000007",
+      "nome": "Pedro Henrique Martins",
+      "cpf": "789.012.345-66",
+      "telefone": "(11) 93333-5678",
+      "email": "pedro.h@email.com",
+      "dataNascimento": "1992-04-18",
+      "convenioId": "UNIMED54321",
+      "convenioNome": "Unimed",
+      "cep": "01415-000",
+      "logradouro": "Rua Estados Unidos",
+      "numero": "150",
+      "complemento": null,
+      "bairro": "Jardim América",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000008",
+      "nome": "Luciana Ferreira",
+      "cpf": "890.123.456-77",
+      "telefone": "(11) 92222-9012",
+      "email": "luciana@email.com",
+      "dataNascimento": "1975-12-05",
+      "convenioId": null,
+      "convenioNome": "Particular",
+      "cep": "01424-001",
+      "logradouro": "Rua Bela Cintra",
+      "numero": "420",
+      "complemento": "Apto 102",
+      "bairro": "Consolação",
+      "cidade": "São Paulo",
+      "estado": "SP"
+    }
+  ],
+  "modelosProcedimento": [
+    {
+      "id": "20000000-0000-0000-0000-000000000001",
+      "nome": "Implante Dentário Unitário",
+      "custoBase": 3500.0,
+      "duracaoEstimada": "3-6 meses",
+      "descricao": "Procedimento cirúrgico para substituição de dente perdido",
+      "categoria": "Implantodontia"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000002",
+      "nome": "Tratamento de Canal",
+      "custoBase": 800.0,
+      "duracaoEstimada": "1-3 sessões",
+      "descricao": "Remoção da polpa dentária infectada",
+      "categoria": "Endodontia"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000003",
+      "nome": "Aparelho Ortodôntico Fixo",
+      "custoBase": 4000.0,
+      "duracaoEstimada": "18-36 meses",
+      "descricao": "Correção do alinhamento dentário",
+      "categoria": "Ortodontia"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000004",
+      "nome": "Extração de Siso",
+      "custoBase": 450.0,
+      "duracaoEstimada": "1 sessão",
+      "descricao": "Remoção cirúrgica do terceiro molar",
+      "categoria": "Cirurgia"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000005",
+      "nome": "Clareamento Dental",
+      "custoBase": 1200.0,
+      "duracaoEstimada": "2-4 sessões",
+      "descricao": "Procedimento estético para branqueamento",
+      "categoria": "Estética"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000006",
+      "nome": "Profilaxia Completa",
+      "custoBase": 180.0,
+      "duracaoEstimada": "1 sessão",
+      "descricao": "Limpeza profissional e aplicação de flúor",
+      "categoria": "Preventivo"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000007",
+      "nome": "Restauração em Resina",
+      "custoBase": 250.0,
+      "duracaoEstimada": "1 sessão",
+      "descricao": "Restauração estética de cavidades",
+      "categoria": "Dentística"
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000008",
+      "nome": "Prótese Total",
+      "custoBase": 2800.0,
+      "duracaoEstimada": "4-6 semanas",
+      "descricao": "Prótese removível completa",
+      "categoria": "Prótese"
+    }
+  ],
+  "etapasModeloProcedimento": [
+    {
+      "id": "21000000-0000-0000-0000-000000000001",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Consulta Inicial e Avaliação",
+      "ordemExibicao": 1,
+      "descricao": "Avaliação clínica e radiográfica",
+      "itensChecklistJson": "[\"Anamnese completa\",\"Exame clínico\",\"Solicitação de exames\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000002",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Exames de Imagem",
+      "ordemExibicao": 2,
+      "descricao": "Tomografia e radiografias",
+      "itensChecklistJson": "[\"Tomografia computadorizada\",\"Radiografia panorâmica\",\"Análise óssea\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000003",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Planejamento Cirúrgico",
+      "ordemExibicao": 3,
+      "descricao": "Definição do plano de tratamento",
+      "itensChecklistJson": "[\"Guia cirúrgico\",\"Escolha do implante\",\"Orçamento aprovado\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000004",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Cirurgia de Implante",
+      "ordemExibicao": 4,
+      "descricao": "Instalação do implante",
+      "itensChecklistJson": "[\"Checklist pré-operatório\",\"Anestesia\",\"Instalação\",\"Sutura\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000005",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Período de Osseointegração",
+      "ordemExibicao": 5,
+      "descricao": "Aguardar cicatrização (3-6 meses)",
+      "itensChecklistJson": "[\"Acompanhamento mensal\",\"Raio-X de controle\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000006",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Reabertura e Moldagem",
+      "ordemExibicao": 6,
+      "descricao": "Segunda fase cirúrgica",
+      "itensChecklistJson": "[\"Reabertura\",\"Instalação do cicatrizador\",\"Moldagem\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000007",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Instalação da Prótese",
+      "ordemExibicao": 7,
+      "descricao": "Colocação da coroa definitiva",
+      "itensChecklistJson": "[\"Prova da prótese\",\"Ajuste oclusal\",\"Cimentação/parafusamento\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000008",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "nome": "Alta e Manutenção",
+      "ordemExibicao": 8,
+      "descricao": "Orientações finais",
+      "itensChecklistJson": "[\"Orientações de higiene\",\"Agendamento de retorno\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000009",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000002",
+      "nome": "Diagnóstico e Anestesia",
+      "ordemExibicao": 1,
+      "descricao": "Confirmação diagnóstica",
+      "itensChecklistJson": "[\"Teste de vitalidade\",\"Raio-X periapical\",\"Anestesia\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000010",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000002",
+      "nome": "Abertura e Instrumentação",
+      "ordemExibicao": 2,
+      "descricao": "Acesso e preparo dos canais",
+      "itensChecklistJson": "[\"Isolamento absoluto\",\"Abertura coronária\",\"Odontometria\",\"Instrumentação\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000011",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000002",
+      "nome": "Obturação",
+      "ordemExibicao": 3,
+      "descricao": "Selamento dos canais",
+      "itensChecklistJson": "[\"Secagem\",\"Obturação\",\"Raio-X final\",\"Restauração provisória\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000012",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000002",
+      "nome": "Restauração Definitiva",
+      "ordemExibicao": 4,
+      "descricao": "Restauração do dente",
+      "itensChecklistJson": "[\"Remoção provisório\",\"Restauração definitiva\",\"Ajuste oclusal\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000013",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000003",
+      "nome": "Documentação Ortodôntica",
+      "ordemExibicao": 1,
+      "descricao": "Exames iniciais",
+      "itensChecklistJson": "[\"Fotos intra/extra orais\",\"Radiografias\",\"Modelos de estudo\",\"Cefalometria\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000014",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000003",
+      "nome": "Planejamento",
+      "ordemExibicao": 2,
+      "descricao": "Elaboração do plano",
+      "itensChecklistJson": "[\"Análise cefalométrica\",\"Plano de tratamento\",\"Apresentação ao paciente\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000015",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000003",
+      "nome": "Instalação do Aparelho",
+      "ordemExibicao": 3,
+      "descricao": "Colagem dos brackets",
+      "itensChecklistJson": "[\"Profilaxia\",\"Colagem\",\"Inserção do arco inicial\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000016",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000003",
+      "nome": "Manutenções Mensais",
+      "ordemExibicao": 4,
+      "descricao": "Ativações periódicas",
+      "itensChecklistJson": "[\"Avaliação\",\"Troca de ligaduras\",\"Progressão de arcos\"]"
+    },
+    {
+      "id": "21000000-0000-0000-0000-000000000017",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000003",
+      "nome": "Remoção e Contenção",
+      "ordemExibicao": 5,
+      "descricao": "Finalização",
+      "itensChecklistJson": "[\"Remoção do aparelho\",\"Instalação da contenção\",\"Documentação final\"]"
+    }
+  ],
+  "atendimentos": [
+    {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "pacienteId": "10000000-0000-0000-0000-000000000001",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000001",
+      "dentistaId": "00000000-0000-0000-0000-000000000002",
+      "dataInicio": "2024-09-15",
+      "status": 2,
+      "custoTotal": 3800.0,
+      "observacoes": "Paciente com boa saúde sistêmica"
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "pacienteId": "10000000-0000-0000-0000-000000000002",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000002",
+      "dentistaId": "00000000-0000-0000-0000-000000000004",
+      "dataInicio": "2024-11-20",
+      "status": 2,
+      "custoTotal": 850.0,
+      "observacoes": null
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000003",
+      "dentistaId": "00000000-0000-0000-0000-000000000003",
+      "dataInicio": "2024-06-01",
+      "status": 2,
+      "custoTotal": 4500.0,
+      "observacoes": null
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000004",
+      "pacienteId": "10000000-0000-0000-0000-000000000004",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000004",
+      "dentistaId": "00000000-0000-0000-0000-000000000002",
+      "dataInicio": "2024-12-01",
+      "status": 1,
+      "custoTotal": 500.0,
+      "observacoes": null
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000005",
+      "pacienteId": "10000000-0000-0000-0000-000000000005",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000005",
+      "dentistaId": "00000000-0000-0000-0000-000000000003",
+      "dataInicio": "2024-11-01",
+      "status": 3,
+      "custoTotal": 1200.0,
+      "observacoes": null
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000006",
+      "pacienteId": "10000000-0000-0000-0000-000000000006",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000006",
+      "dentistaId": "00000000-0000-0000-0000-000000000004",
+      "dataInicio": "2024-12-05",
+      "status": 1,
+      "custoTotal": 180.0,
+      "observacoes": null
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000007",
+      "pacienteId": "10000000-0000-0000-0000-000000000007",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000007",
+      "dentistaId": "00000000-0000-0000-0000-000000000002",
+      "dataInicio": "2024-10-15",
+      "status": 3,
+      "custoTotal": 250.0,
+      "observacoes": "Restauração no dente 36"
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000008",
+      "pacienteId": "10000000-0000-0000-0000-000000000008",
+      "modeloProcedimentoId": "20000000-0000-0000-0000-000000000008",
+      "dentistaId": "00000000-0000-0000-0000-000000000002",
+      "dataInicio": "2024-08-01",
+      "status": 3,
+      "custoTotal": 2800.0,
+      "observacoes": "Prótese total superior"
+    }
+  ],
+  "etapasAtendimento": [
+    {
+      "id": "31000000-0000-0000-0000-000000000001",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Consulta Inicial e Avaliação",
+      "status": 3,
+      "ordemExibicao": 1,
+      "dataAgendada": "2024-09-15",
+      "dataConclusao": "2024-09-15",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000002",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Exames de Imagem",
+      "status": 3,
+      "ordemExibicao": 2,
+      "dataAgendada": "2024-09-22",
+      "dataConclusao": "2024-09-22",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000003",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Planejamento Cirúrgico",
+      "status": 3,
+      "ordemExibicao": 3,
+      "dataAgendada": "2024-09-30",
+      "dataConclusao": "2024-10-02",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000004",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Cirurgia de Implante",
+      "status": 3,
+      "ordemExibicao": 4,
+      "dataAgendada": "2024-10-15",
+      "dataConclusao": "2024-10-15",
+      "observacoes": "Implante Nobel 4.3x11.5mm instalado com sucesso"
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000005",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Período de Osseointegração",
+      "status": 2,
+      "ordemExibicao": 5,
+      "dataAgendada": "2024-10-16",
+      "dataConclusao": null,
+      "observacoes": "Acompanhamento em andamento"
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000006",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Reabertura e Moldagem",
+      "status": 1,
+      "ordemExibicao": 6,
+      "dataAgendada": "2025-01-15",
+      "dataConclusao": null,
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000007",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Instalação da Prótese",
+      "status": 1,
+      "ordemExibicao": 7,
+      "dataAgendada": "2025-02-01",
+      "dataConclusao": null,
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000008",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "nome": "Alta e Manutenção",
+      "status": 1,
+      "ordemExibicao": 8,
+      "dataAgendada": "2025-02-15",
+      "dataConclusao": null,
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000009",
+      "atendimentoId": "30000000-0000-0000-0000-000000000002",
+      "nome": "Diagnóstico e Anestesia",
+      "status": 3,
+      "ordemExibicao": 1,
+      "dataAgendada": "2024-11-20",
+      "dataConclusao": "2024-11-20",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000010",
+      "atendimentoId": "30000000-0000-0000-0000-000000000002",
+      "nome": "Abertura e Instrumentação",
+      "status": 2,
+      "ordemExibicao": 2,
+      "dataAgendada": "2024-11-27",
+      "dataConclusao": null,
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000011",
+      "atendimentoId": "30000000-0000-0000-0000-000000000002",
+      "nome": "Obturação",
+      "status": 1,
+      "ordemExibicao": 3,
+      "dataAgendada": "2024-12-04",
+      "dataConclusao": null,
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000012",
+      "atendimentoId": "30000000-0000-0000-0000-000000000002",
+      "nome": "Restauração Definitiva",
+      "status": 1,
+      "ordemExibicao": 4,
+      "dataAgendada": "2024-12-11",
+      "dataConclusao": null,
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000013",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "nome": "Documentação Ortodôntica",
+      "status": 3,
+      "ordemExibicao": 1,
+      "dataAgendada": "2024-06-01",
+      "dataConclusao": "2024-06-01",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000014",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "nome": "Planejamento",
+      "status": 3,
+      "ordemExibicao": 2,
+      "dataAgendada": "2024-06-15",
+      "dataConclusao": "2024-06-15",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000015",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "nome": "Instalação do Aparelho",
+      "status": 3,
+      "ordemExibicao": 3,
+      "dataAgendada": "2024-07-01",
+      "dataConclusao": "2024-07-01",
+      "observacoes": null
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000016",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "nome": "Manutenções Mensais",
+      "status": 2,
+      "ordemExibicao": 4,
+      "dataAgendada": "2024-08-01",
+      "dataConclusao": null,
+      "observacoes": "Manutenção #5 realizada em Nov/2024"
+    },
+    {
+      "id": "31000000-0000-0000-0000-000000000017",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "nome": "Remoção e Contenção",
+      "status": 1,
+      "ordemExibicao": 5,
+      "dataAgendada": "2026-01-01",
+      "dataConclusao": null,
+      "observacoes": null
+    }
+  ],
+  "lancamentosFinanceiros": [
+    {
+      "id": "40000000-0000-0000-0000-000000000001",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "pacienteId": "10000000-0000-0000-0000-000000000001",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 1900.0,
+      "dataLancamento": "2024-09-15",
+      "descricao": "Entrada - Implante",
+      "categoria": "Implantodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000002",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "pacienteId": "10000000-0000-0000-0000-000000000001",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 1900.0,
+      "dataLancamento": "2024-10-15",
+      "descricao": "Parcela 2 - Implante",
+      "categoria": "Implantodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000003",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "pacienteId": null,
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 2,
+      "valor": 450.0,
+      "dataLancamento": "2024-10-10",
+      "descricao": "Componente Nobel",
+      "categoria": "Material",
+      "tipoResponsavel": 2,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000004",
+      "atendimentoId": "30000000-0000-0000-0000-000000000002",
+      "pacienteId": "10000000-0000-0000-0000-000000000002",
+      "criadoPorId": "00000000-0000-0000-0000-000000000004",
+      "tipo": 1,
+      "valor": 850.0,
+      "dataLancamento": "2024-11-20",
+      "descricao": "Tratamento de Canal",
+      "categoria": "Endodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000005",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 1500.0,
+      "dataLancamento": "2024-06-01",
+      "descricao": "Entrada - Ortodontia",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000006",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 500.0,
+      "dataLancamento": "2024-07-01",
+      "descricao": "Mensalidade Jul",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000007",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 500.0,
+      "dataLancamento": "2024-08-01",
+      "descricao": "Mensalidade Ago",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000008",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 500.0,
+      "dataLancamento": "2024-09-01",
+      "descricao": "Mensalidade Set",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000009",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 500.0,
+      "dataLancamento": "2024-10-01",
+      "descricao": "Mensalidade Out",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000010",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 500.0,
+      "dataLancamento": "2024-11-01",
+      "descricao": "Mensalidade Nov",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000011",
+      "atendimentoId": "30000000-0000-0000-0000-000000000005",
+      "pacienteId": "10000000-0000-0000-0000-000000000005",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 1200.0,
+      "dataLancamento": "2024-11-01",
+      "descricao": "Clareamento",
+      "categoria": "Estética",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000012",
+      "atendimentoId": "30000000-0000-0000-0000-000000000006",
+      "pacienteId": "10000000-0000-0000-0000-000000000006",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 180.0,
+      "dataLancamento": "2024-12-05",
+      "descricao": "Profilaxia",
+      "categoria": "Preventivo",
+      "tipoResponsavel": 1,
+      "status": 1
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000013",
+      "atendimentoId": "30000000-0000-0000-0000-000000000001",
+      "pacienteId": null,
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 2,
+      "valor": 120.0,
+      "dataLancamento": "2024-09-15",
+      "descricao": "Material cirúrgico",
+      "categoria": "Material",
+      "tipoResponsavel": 2,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000014",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": null,
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 2,
+      "valor": 280.0,
+      "dataLancamento": "2024-07-01",
+      "descricao": "Brackets cerâmicos",
+      "categoria": "Material",
+      "tipoResponsavel": 2,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000015",
+      "atendimentoId": "30000000-0000-0000-0000-000000000007",
+      "pacienteId": "10000000-0000-0000-0000-000000000007",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 250.0,
+      "dataLancamento": "2024-10-15",
+      "descricao": "Restauração em Resina",
+      "categoria": "Dentística",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000016",
+      "atendimentoId": "30000000-0000-0000-0000-000000000008",
+      "pacienteId": "10000000-0000-0000-0000-000000000008",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 1400.0,
+      "dataLancamento": "2024-08-01",
+      "descricao": "Entrada - Prótese Total",
+      "categoria": "Prótese",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000017",
+      "atendimentoId": "30000000-0000-0000-0000-000000000008",
+      "pacienteId": "10000000-0000-0000-0000-000000000008",
+      "criadoPorId": "00000000-0000-0000-0000-000000000002",
+      "tipo": 1,
+      "valor": 1400.0,
+      "dataLancamento": "2024-09-01",
+      "descricao": "Parcela 2 - Prótese Total",
+      "categoria": "Prótese",
+      "tipoResponsavel": 1,
+      "status": 2
+    },
+    {
+      "id": "40000000-0000-0000-0000-000000000018",
+      "atendimentoId": "30000000-0000-0000-0000-000000000003",
+      "pacienteId": "10000000-0000-0000-0000-000000000003",
+      "criadoPorId": "00000000-0000-0000-0000-000000000003",
+      "tipo": 1,
+      "valor": 500.0,
+      "dataLancamento": "2024-12-01",
+      "descricao": "Mensalidade Dez",
+      "categoria": "Ortodontia",
+      "tipoResponsavel": 1,
+      "status": 1
+    }
+  ]
+}

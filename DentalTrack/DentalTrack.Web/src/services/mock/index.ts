@@ -1,17 +1,3 @@
-// Mock Services
-export { MockUserService } from "./MockUserService";
-export { MockPatientService } from "./MockPatientService";
-export {
-  MockProcedureTemplateService,
-  MockProcedureTemplateStageService,
-  MockStageTemplateService,
-} from "./MockProcedureTemplateService";
-export {
-  MockTreatmentService,
-  MockTreatmentStageService,
-} from "./MockTreatmentService";
-export { MockFinancialService } from "./MockFinancialService";
-export { MockAuthService } from "./MockAuthService";
-
-// Utilities
-export * from "./mockUtils";
+// Runtime mocks have been disabled and moved to example JSON files.
+// This module intentionally exports nothing.
+export {};

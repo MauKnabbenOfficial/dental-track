@@ -64,27 +64,28 @@ export default function Patients() {
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Form state
+  // Form state (fields named to match backend DTO: português)
   const [formData, setFormData] = useState({
-    name: "",
+    nome: "",
     cpf: "",
-    phone: "",
+    telefone: "",
     email: "",
-    birthDate: "",
-    healthInsuranceId: "",
-    healthInsuranceName: "",
-    zipCode: "",
-    street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
-    city: "",
-    state: "",
+    dataNascimento: "",
+    convenioId: "",
+    convenioNome: "",
+    cep: "",
+    logradouro: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
   });
 
   // Mask functions
-  const maskCpf = (value: string) => {
-    return value
+  const maskCpf = (value?: string) => {
+    const v = value ?? "";
+    return v
       .replace(/\D/g, "")
       .replace(/(\d{3})(\d)/, "$1.$2")
       .replace(/(\d{3})(\d)/, "$1.$2")
@@ -92,16 +93,18 @@ export default function Patients() {
       .replace(/(-\d{2})\d+?$/, "$1");
   };
 
-  const maskPhone = (value: string) => {
-    return value
+  const maskPhone = (value?: string) => {
+    const v = value ?? "";
+    return v
       .replace(/\D/g, "")
       .replace(/(\d{2})(\d)/, "($1) $2")
       .replace(/(\d{5})(\d)/, "$1-$2")
       .replace(/(-\d{4})\d+?$/, "$1");
   };
 
-  const maskZipCode = (value: string) => {
-    return value
+  const maskZipCode = (value?: string) => {
+    const v = value ?? "";
+    return v
       .replace(/\D/g, "")
       .replace(/(\d{5})(\d)/, "$1-$2")
       .replace(/(-\d{3})\d+?$/, "$1");
@@ -114,30 +117,34 @@ export default function Patients() {
 
   const filteredPatients = patients.filter(
     (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.cpf.includes(search) ||
-      p.email.toLowerCase().includes(search.toLowerCase())
+      (p.nome || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.cpf || "").includes(search) ||
+      (p.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const formatDate = (dateStr: string) =>
-    format(new Date(dateStr), "dd/MM/yyyy", { locale: ptBR });
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Não informado";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "Não informado";
+    return format(d, "dd/MM/yyyy", { locale: ptBR });
+  };
 
   const resetForm = () => {
     setFormData({
-      name: "",
+      nome: "",
       cpf: "",
-      phone: "",
+      telefone: "",
       email: "",
-      birthDate: "",
-      healthInsuranceId: "",
-      healthInsuranceName: "",
-      street: "",
-      number: "",
-      complement: "",
-      neighborhood: "",
-      city: "",
-      state: "",
-      zipCode: "",
+      dataNascimento: "",
+      convenioId: "",
+      convenioNome: "",
+      logradouro: "",
+      numero: "",
+      complemento: "",
+      bairro: "",
+      cidade: "",
+      estado: "",
+      cep: "",
     });
     setEditingPatient(null);
   };
@@ -145,20 +152,20 @@ export default function Patients() {
   const openEditDialog = (patient: Patient) => {
     setEditingPatient(patient);
     setFormData({
-      name: patient.name,
+      nome: patient.nome,
       cpf: maskCpf(patient.cpf),
-      phone: maskPhone(patient.phone),
+      telefone: maskPhone(patient.telefone),
       email: patient.email,
-      birthDate: patient.birthDate,
-      healthInsuranceId: patient.healthInsuranceId || "",
-      healthInsuranceName: patient.healthInsuranceName || "",
-      street: patient.street || "",
-      number: patient.number || "",
-      complement: patient.complement || "",
-      neighborhood: patient.neighborhood || "",
-      city: patient.city || "",
-      state: patient.state || "",
-      zipCode: maskZipCode(patient.zipCode || ""),
+      dataNascimento: patient.dataNascimento,
+      convenioId: patient.convenioId || "",
+      convenioNome: patient.convenioNome || "",
+      logradouro: patient.logradouro || "",
+      numero: patient.numero || "",
+      complemento: patient.complemento || "",
+      bairro: patient.bairro || "",
+      cidade: patient.cidade || "",
+      estado: patient.estado || "",
+      cep: maskZipCode(patient.cep || ""),
     });
     setIsFormOpen(true);
   };
@@ -166,12 +173,16 @@ export default function Patients() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Remove masks before saving
+    // Remove masks before saving (normalizing keys to backend names)
     const cleanData = {
       ...formData,
-      cpf: formData.cpf.replace(/\D/g, ""),
-      phone: formData.phone.replace(/\D/g, ""),
-      zipCode: formData.zipCode.replace(/\D/g, ""),
+      cpf: (formData as any).cpf.replace(/\D/g, ""),
+      telefone: (formData as any).telefone
+        ? (formData as any).telefone.replace(/\D/g, "")
+        : "",
+      cep: (formData as any).cep
+        ? (formData as any).cep.replace(/\D/g, "")
+        : "",
     };
 
     if (editingPatient) {
@@ -181,7 +192,7 @@ export default function Patients() {
       addPatient({
         id: generateId(),
         ...cleanData,
-        createdAt: new Date().toISOString().split("T")[0],
+        dtCadastro: new Date().toISOString().split("T")[0],
       });
       toast.success("Paciente cadastrado!");
     }
@@ -201,7 +212,7 @@ export default function Patients() {
   // Get completed treatments for a patient
   const getCompletedTreatments = (patientId: string) => {
     return getTreatmentsByPatientId(patientId).filter(
-      (t) => t.status === "completed"
+      (t) => t.status === "concluido"
     );
   };
 
@@ -246,9 +257,9 @@ export default function Patients() {
                 <Label>Nome Completo</Label>
                 <Input
                   placeholder="Digite o nome completo"
-                  value={formData.name}
+                  value={(formData as any).nome}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    setFormData((prev) => ({ ...prev, nome: e.target.value }))
                   }
                   required
                 />
@@ -257,7 +268,7 @@ export default function Patients() {
                 <Label>CPF</Label>
                 <Input
                   placeholder="000.000.000-00"
-                  value={formData.cpf}
+                  value={(formData as any).cpf}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -272,11 +283,11 @@ export default function Patients() {
                 <Label>Data de Nascimento</Label>
                 <Input
                   type="date"
-                  value={formData.birthDate}
+                  value={(formData as any).dataNascimento}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      birthDate: e.target.value,
+                      dataNascimento: e.target.value,
                     }))
                   }
                   required
@@ -286,11 +297,11 @@ export default function Patients() {
                 <Label>Telefone</Label>
                 <Input
                   placeholder="(00) 00000-0000"
-                  value={formData.phone}
+                  value={(formData as any).telefone}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      phone: maskPhone(e.target.value),
+                      telefone: maskPhone(e.target.value),
                     }))
                   }
                   maxLength={15}
@@ -302,7 +313,7 @@ export default function Patients() {
                 <Input
                   type="email"
                   placeholder="email@exemplo.com"
-                  value={formData.email}
+                  value={(formData as any).email}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, email: e.target.value }))
                   }
@@ -313,11 +324,11 @@ export default function Patients() {
                 <Label>Convênio</Label>
                 <Input
                   placeholder="Nome do convênio (opcional)"
-                  value={formData.healthInsuranceName}
+                  value={(formData as any).convenioNome}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      healthInsuranceName: e.target.value,
+                      convenioNome: e.target.value,
                     }))
                   }
                 />
@@ -326,13 +337,11 @@ export default function Patients() {
                 <Label>Nº Carteirinha</Label>
                 <Input
                   placeholder="Número da carteirinha"
-                  value={formData.healthInsuranceId}
+                  value={(formData as any).convenioId}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      healthInsuranceId: sanitizeHealthInsuranceId(
-                        e.target.value
-                      ),
+                      convenioId: sanitizeHealthInsuranceId(e.target.value),
                     }))
                   }
                 />
@@ -346,11 +355,11 @@ export default function Patients() {
                 <Label>CEP</Label>
                 <Input
                   placeholder="00000-000"
-                  value={formData.zipCode}
+                  value={(formData as any).cep}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      zipCode: maskZipCode(e.target.value),
+                      cep: maskZipCode(e.target.value),
                     }))
                   }
                   maxLength={9}
@@ -360,11 +369,11 @@ export default function Patients() {
                 <Label>Estado</Label>
                 <Input
                   placeholder="UF"
-                  value={formData.state}
+                  value={(formData as any).estado}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      state: e.target.value.toUpperCase().slice(0, 2),
+                      estado: e.target.value.toUpperCase().slice(0, 2),
                     }))
                   }
                   maxLength={2}
@@ -374,11 +383,11 @@ export default function Patients() {
                 <Label>Cidade</Label>
                 <Input
                   placeholder="Cidade"
-                  value={formData.city}
+                  value={(formData as any).cidade}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      city: e.target.value,
+                      cidade: e.target.value,
                     }))
                   }
                 />
@@ -387,11 +396,11 @@ export default function Patients() {
                 <Label>Bairro</Label>
                 <Input
                   placeholder="Bairro"
-                  value={formData.neighborhood}
+                  value={(formData as any).bairro}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      neighborhood: e.target.value,
+                      bairro: e.target.value,
                     }))
                   }
                 />
@@ -400,11 +409,11 @@ export default function Patients() {
                 <Label>Rua</Label>
                 <Input
                   placeholder="Rua / Avenida"
-                  value={formData.street}
+                  value={(formData as any).logradouro}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      street: e.target.value,
+                      logradouro: e.target.value,
                     }))
                   }
                 />
@@ -414,11 +423,11 @@ export default function Patients() {
                   <Label>Número</Label>
                   <Input
                     placeholder="Nº"
-                    value={formData.number}
+                    value={(formData as any).numero}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        number: e.target.value,
+                        numero: e.target.value,
                       }))
                     }
                   />
@@ -427,11 +436,11 @@ export default function Patients() {
                   <Label>Complemento</Label>
                   <Input
                     placeholder="Apto, Sala..."
-                    value={formData.complement}
+                    value={(formData as any).complemento}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        complement: e.target.value,
+                        complemento: e.target.value,
                       }))
                     }
                   />
@@ -495,7 +504,7 @@ export default function Patients() {
                   <TableRow key={patient.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{patient.name}</p>
+                        <p className="font-medium">{patient.nome}</p>
                         {patientTreatments.length > 0 && (
                           <Badge variant="secondary" className="text-xs mt-1">
                             {patientTreatments.length} tratamento(s)
@@ -510,7 +519,7 @@ export default function Patients() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm">
                           <Phone className="h-3 w-3" />
-                          {maskPhone(patient.phone)}
+                          {maskPhone(patient.telefone)}
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Mail className="h-3 w-3" />
@@ -521,17 +530,17 @@ export default function Patients() {
                     <TableCell>
                       <Badge
                         variant={
-                          patient.healthInsuranceName === "Particular" ||
-                          !patient.healthInsuranceName
+                          patient.convenioNome === "Particular" ||
+                          !patient.convenioNome
                             ? "outline"
                             : "default"
                         }
                       >
-                        {patient.healthInsuranceName || "Particular"}
+                        {patient.convenioNome || "Particular"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(patient.createdAt)}
+                      {formatDate(patient.dtCadastro)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
@@ -595,7 +604,7 @@ export default function Patients() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Nome</p>
-                  <p className="font-medium">{selectedPatient.name}</p>
+                  <p className="font-medium">{selectedPatient.nome}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">CPF</p>
@@ -603,7 +612,7 @@ export default function Patients() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p>{maskPhone(selectedPatient.phone)}</p>
+                  <p>{maskPhone(selectedPatient.telefone)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">E-mail</p>
@@ -613,18 +622,18 @@ export default function Patients() {
                   <p className="text-sm text-muted-foreground">
                     Data de Nascimento
                   </p>
-                  <p>{formatDate(selectedPatient.birthDate)}</p>
+                  <p>{formatDate(selectedPatient.dataNascimento)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Convênio</p>
                   <Badge
                     variant={
-                      selectedPatient.healthInsuranceName === "Particular"
+                      selectedPatient.convenioNome === "Particular"
                         ? "outline"
                         : "default"
                     }
                   >
-                    {selectedPatient.healthInsuranceName || "Particular"}
+                    {selectedPatient.convenioNome || "Particular"}
                   </Badge>
                 </div>
               </div>
@@ -632,19 +641,18 @@ export default function Patients() {
                 <p className="text-sm text-muted-foreground">Endereço</p>
                 <p>
                   {[
-                    selectedPatient.street &&
-                      `${selectedPatient.street}${
-                        selectedPatient.number
-                          ? `, ${selectedPatient.number}`
+                    selectedPatient.logradouro &&
+                      `${selectedPatient.logradouro}${
+                        selectedPatient.numero
+                          ? `, ${selectedPatient.numero}`
                           : ""
                       }`,
-                    selectedPatient.complement,
-                    selectedPatient.neighborhood,
-                    selectedPatient.city && selectedPatient.state
-                      ? `${selectedPatient.city} - ${selectedPatient.state}`
-                      : selectedPatient.city || selectedPatient.state,
-                    selectedPatient.zipCode &&
-                      maskZipCode(selectedPatient.zipCode),
+                    selectedPatient.complemento,
+                    selectedPatient.bairro,
+                    selectedPatient.cidade && selectedPatient.estado
+                      ? `${selectedPatient.cidade} - ${selectedPatient.estado}`
+                      : selectedPatient.cidade || selectedPatient.estado,
+                    selectedPatient.cep && maskZipCode(selectedPatient.cep),
                   ]
                     .filter(Boolean)
                     .join(", ") || "Não informado"}
@@ -667,7 +675,7 @@ export default function Patients() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
-              Histórico de Procedimentos - {historyPatient?.name}
+              Histórico de Procedimentos - {historyPatient?.nome}
             </DialogTitle>
           </DialogHeader>
           {historyPatient && (
@@ -677,7 +685,7 @@ export default function Patients() {
                   historyPatient.id
                 );
                 const completedTreatments = allTreatments.filter(
-                  (t) => t.status === "completed"
+                  (t) => t.status === "concluido"
                 );
 
                 if (allTreatments.length === 0) {
@@ -699,7 +707,7 @@ export default function Patients() {
                         <div className="space-y-3">
                           {completedTreatments.map((treatment) => {
                             const template = getTemplateById(
-                              treatment.templateId
+                              (treatment as any).modeloProcedimentoId
                             );
                             return (
                               <div
@@ -708,11 +716,12 @@ export default function Patients() {
                               >
                                 <div>
                                   <p className="font-medium">
-                                    {template?.name}
+                                    {(template as any)?.nome ||
+                                      (template as any)?.name}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
                                     Iniciado em{" "}
-                                    {formatDate(treatment.startDate)}
+                                    {formatDate((treatment as any).dataInicio)}
                                   </p>
                                 </div>
                                 <Badge className="bg-success/10 text-success">
@@ -725,7 +734,7 @@ export default function Patients() {
                       </div>
                     )}
 
-                    {allTreatments.filter((t) => t.status !== "completed")
+                    {allTreatments.filter((t) => t.status !== "concluido")
                       .length > 0 && (
                       <div>
                         <h4 className="font-semibold text-sm text-muted-foreground mb-3">
@@ -733,24 +742,24 @@ export default function Patients() {
                         </h4>
                         <div className="space-y-3">
                           {allTreatments
-                            .filter((t) => t.status !== "completed")
+                            .filter((t) => t.status !== "concluido")
                             .map((treatment) => {
                               const template = getTemplateById(
-                                treatment.templateId
+                                (treatment as any).modeloProcedimentoId
                               );
                               const statusConfig: Record<
                                 string,
                                 { label: string; color: string }
                               > = {
-                                in_progress: {
+                                em_andamento: {
                                   label: "Em Andamento",
                                   color: "bg-primary/10 text-primary",
                                 },
-                                scheduled: {
+                                agendado: {
                                   label: "Agendado",
                                   color: "bg-muted text-muted-foreground",
                                 },
-                                cancelled: {
+                                cancelado: {
                                   label: "Cancelado",
                                   color: "bg-destructive/10 text-destructive",
                                 },
@@ -771,7 +780,9 @@ export default function Patients() {
                                     </p>
                                     <p className="text-sm text-muted-foreground">
                                       Iniciado em{" "}
-                                      {formatDate(treatment.startDate)}
+                                      {formatDate(
+                                        (treatment as any).dataInicio
+                                      )}
                                     </p>
                                   </div>
                                   <Badge className={status.color}>

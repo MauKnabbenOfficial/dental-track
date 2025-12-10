@@ -71,20 +71,20 @@ export default function Team() {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: "",
+    nome: "",
     email: "",
-    role: "dentist" as "admin" | "dentist" | "reception",
-    specialty: "",
+    perfilNome: "dentist" as "admin" | "dentist" | "reception",
+    especialidade: "",
   });
 
   const filteredUsers = users.filter(
     (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
+      (u.nome || "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const getInitials = (name: string) =>
-    name
+  const getInitials = (nome: string) =>
+    nome
       .split(" ")
       .map((n) => n[0])
       .slice(0, 2)
@@ -92,17 +92,22 @@ export default function Team() {
       .toUpperCase();
 
   const resetForm = () => {
-    setFormData({ name: "", email: "", role: "dentist", specialty: "" });
+    setFormData({
+      nome: "",
+      email: "",
+      perfilNome: "dentist",
+      especialidade: "",
+    });
     setEditingUser(null);
   };
 
   const openEditDialog = (user: User) => {
     setEditingUser(user);
     setFormData({
-      name: user.name,
+      nome: user.nome,
       email: user.email,
-      role: user.role,
-      specialty: user.specialty || "",
+      perfilNome: (user as any).perfilNome || "dentist",
+      especialidade: user.especialidade || "",
     });
     setIsFormOpen(true);
   };
@@ -111,12 +116,20 @@ export default function Team() {
     e.preventDefault();
 
     if (editingUser) {
-      updateUser(editingUser.id, formData);
+      updateUser(editingUser.id, {
+        nome: formData.nome,
+        email: formData.email,
+        perfilNome: formData.perfilNome,
+        especialidade: formData.especialidade,
+      });
       toast.success("Membro atualizado!");
     } else {
       addUser({
         id: generateId(),
-        ...formData,
+        nome: formData.nome,
+        email: formData.email,
+        perfilNome: formData.perfilNome,
+        especialidade: formData.especialidade,
       });
       toast.success("Membro cadastrado!");
     }
@@ -169,9 +182,9 @@ export default function Team() {
                 <Label>Nome Completo</Label>
                 <Input
                   placeholder="Digite o nome completo"
-                  value={formData.name}
+                  value={formData.nome}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    setFormData((prev) => ({ ...prev, nome: e.target.value }))
                   }
                   required
                 />
@@ -191,9 +204,9 @@ export default function Team() {
               <div>
                 <Label>Perfil de Acesso</Label>
                 <Select
-                  value={formData.role}
+                  value={formData.perfilNome}
                   onValueChange={(value: "admin" | "dentist" | "reception") =>
-                    setFormData((prev) => ({ ...prev, role: value }))
+                    setFormData((prev) => ({ ...prev, perfilNome: value }))
                   }
                 >
                   <SelectTrigger>
@@ -210,11 +223,11 @@ export default function Team() {
                 <Label>Especialidade (opcional)</Label>
                 <Input
                   placeholder="Ex: Implantodontia, Ortodontia"
-                  value={formData.specialty}
+                  value={formData.especialidade}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      specialty: e.target.value,
+                      especialidade: e.target.value,
                     }))
                   }
                 />
@@ -287,7 +300,7 @@ export default function Team() {
       {/* Team Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredUsers.map((user) => {
-          const role = roleConfig[user.role];
+          const role = roleConfig[(user as any).perfilNome || "reception"];
           const RoleIcon = role.icon;
 
           return (
@@ -296,7 +309,7 @@ export default function Team() {
                 <div className="flex items-start justify-between mb-4">
                   <Avatar className="h-16 w-16">
                     <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                      {getInitials(user.name)}
+                      {getInitials(user.nome)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex gap-1">
@@ -320,7 +333,7 @@ export default function Team() {
 
                 <div className="space-y-3">
                   <div>
-                    <h3 className="font-semibold text-lg">{user.name}</h3>
+                    <h3 className="font-semibold text-lg">{user.nome}</h3>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                       <Mail className="h-4 w-4" />
                       {user.email}
@@ -334,12 +347,14 @@ export default function Team() {
                     </Badge>
                   </div>
 
-                  {user.specialty && (
+                  {(user as any).especialidade && (
                     <div className="pt-2 border-t">
                       <p className="text-sm text-muted-foreground">
                         Especialidade
                       </p>
-                      <p className="font-medium">{user.specialty}</p>
+                      <p className="font-medium">
+                        {(user as any).especialidade}
+                      </p>
                     </div>
                   )}
                 </div>

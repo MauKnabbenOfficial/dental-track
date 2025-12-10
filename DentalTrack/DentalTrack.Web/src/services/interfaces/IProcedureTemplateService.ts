@@ -26,7 +26,9 @@ export interface IProcedureTemplateStageService
   /**
    * Busca etapas por template
    */
-  getByTemplateId(templateId: string): Promise<ProcedureTemplateStage[]>;
+  getByTemplateId(
+    modeloProcedimentoId: string
+  ): Promise<ProcedureTemplateStage[]>;
 
   /**
    * Reordena etapas (troca posição de duas etapas)
@@ -36,7 +38,10 @@ export interface IProcedureTemplateStageService
   /**
    * Atualiza a ordem de todas as etapas de um template
    */
-  reorderStages(templateId: string, stageIds: string[]): Promise<void>;
+  reorderStages(
+    modeloProcedimentoId: string,
+    stageIds: string[]
+  ): Promise<void>;
 }
 
 /**

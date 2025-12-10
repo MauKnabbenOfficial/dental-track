@@ -6,19 +6,36 @@ import {
   IStageTemplateService,
 } from "../interfaces/IProcedureTemplateService";
 import { apiClient, buildQueryString } from "../http";
+import { toast } from "sonner";
 
 /**
  * Implementação API do serviço de Templates de Procedimentos
  */
 export const ApiProcedureTemplateService: IProcedureTemplateService = {
   async getAll(): Promise<ProcedureTemplate[]> {
-    return apiClient.get<ProcedureTemplate[]>("/procedure-templates");
+    try {
+      const res = await apiClient.get<ProcedureTemplate[]>(
+        "/modelosprocedimentos"
+      );
+      // Diagnostic (only in dev)
+      if (import.meta.env.DEV) {
+        try {
+          if (Array.isArray(res))
+            toast.info(`Diagnóstico: Modelos carregados: ${res.length}`);
+        } catch (e) {}
+      }
+      return res;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("ApiProcedureTemplateService.getAll error:", error);
+      throw error;
+    }
   },
 
   async getById(id: string): Promise<ProcedureTemplate | undefined> {
     try {
       return await apiClient.get<ProcedureTemplate>(
-        `/procedure-templates/${id}`
+        `/modelosprocedimentos/${id}`
       );
     } catch (error: any) {
       if (error.status === 404) return undefined;
@@ -29,27 +46,30 @@ export const ApiProcedureTemplateService: IProcedureTemplateService = {
   async create(
     data: Omit<ProcedureTemplate, "id">
   ): Promise<ProcedureTemplate> {
-    return apiClient.post<ProcedureTemplate>("/procedure-templates", data);
+    return apiClient.post<ProcedureTemplate>("/modelosprocedimentos", data);
   },
 
   async update(
     id: string,
     data: Partial<ProcedureTemplate>
   ): Promise<ProcedureTemplate> {
-    return apiClient.put<ProcedureTemplate>(`/procedure-templates/${id}`, data);
+    return apiClient.put<ProcedureTemplate>(
+      `/modelosprocedimentos/${id}`,
+      data
+    );
   },
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`/procedure-templates/${id}`);
+    return apiClient.delete(`/modelosprocedimentos/${id}`);
   },
 
   async getByCategory(category: string): Promise<ProcedureTemplate[]> {
-    const query = buildQueryString({ category });
-    return apiClient.get<ProcedureTemplate[]>(`/procedure-templates${query}`);
+    const query = buildQueryString({ categoria: category });
+    return apiClient.get<ProcedureTemplate[]>(`/modelosprocedimentos${query}`);
   },
 
   async getCategories(): Promise<string[]> {
-    return apiClient.get<string[]>("/procedure-templates/categories");
+    return apiClient.get<string[]>("/modelosprocedimentos/categorias");
   },
 };
 
@@ -59,15 +79,29 @@ export const ApiProcedureTemplateService: IProcedureTemplateService = {
 export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
   {
     async getAll(): Promise<ProcedureTemplateStage[]> {
-      return apiClient.get<ProcedureTemplateStage[]>(
-        "/procedure-template-stages"
-      );
+      try {
+        const res = await apiClient.get<ProcedureTemplateStage[]>(
+          "/modelosetapas"
+        );
+        // Diagnostic (only in dev)
+        if (import.meta.env.DEV) {
+          try {
+            if (Array.isArray(res))
+              toast.info(`Diagnóstico: Etapas totais: ${res.length}`);
+          } catch (e) {}
+        }
+        return res;
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("ApiProcedureTemplateStageService.getAll error:", error);
+        throw error;
+      }
     },
 
     async getById(id: string): Promise<ProcedureTemplateStage | undefined> {
       try {
         return await apiClient.get<ProcedureTemplateStage>(
-          `/procedure-template-stages/${id}`
+          `/modelosetapas/${id}`
         );
       } catch (error: any) {
         if (error.status === 404) return undefined;
@@ -78,8 +112,10 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
     async create(
       data: Omit<ProcedureTemplateStage, "id">
     ): Promise<ProcedureTemplateStage> {
+      // Backend expects the modeloProcedimentoId path param and DTO fields
+      const modeloId = (data as any).modeloProcedimentoId;
       return apiClient.post<ProcedureTemplateStage>(
-        "/procedure-template-stages",
+        `/modelosprocedimentos/${modeloId}/etapas`,
         data
       );
     },
@@ -89,34 +125,57 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
       data: Partial<ProcedureTemplateStage>
     ): Promise<ProcedureTemplateStage> {
       return apiClient.put<ProcedureTemplateStage>(
-        `/procedure-template-stages/${id}`,
+        `/modelosetapas/${id}`,
         data
       );
     },
 
     async delete(id: string): Promise<void> {
-      return apiClient.delete(`/procedure-template-stages/${id}`);
+      return apiClient.delete(`/modelosetapas/${id}`);
     },
 
     async getByTemplateId(
-      templateId: string
+      modeloProcedimentoId: string
     ): Promise<ProcedureTemplateStage[]> {
-      return apiClient.get<ProcedureTemplateStage[]>(
-        `/procedure-templates/${templateId}/stages`
-      );
+      try {
+        const res = await apiClient.get<ProcedureTemplateStage[]>(
+          `/modelosprocedimentos/${modeloProcedimentoId}/etapas`
+        );
+        // Diagnostic (only in dev)
+        if (import.meta.env.DEV) {
+          try {
+            if (Array.isArray(res))
+              toast.info(
+                `Diagnóstico: Etapas do modelo ${modeloProcedimentoId}: ${res.length}`
+              );
+          } catch (e) {}
+        }
+        return res;
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "ApiProcedureTemplateStageService.getByTemplateId error:",
+          error
+        );
+        throw error;
+      }
     },
 
     async swapOrder(stageId1: string, stageId2: string): Promise<void> {
-      return apiClient.post("/procedure-template-stages/swap-order", {
-        stageId1,
-        stageId2,
-      });
+      // Nota: Backend não tem endpoint de swap, apenas de reordenação
+      // Esta função não faz nada por enquanto
+      return Promise.resolve();
     },
 
-    async reorderStages(templateId: string, stageIds: string[]): Promise<void> {
-      return apiClient.post(
-        `/procedure-templates/${templateId}/reorder-stages`,
-        { stageIds }
+    async reorderStages(
+      modeloProcedimentoId: string,
+      stageIds: string[]
+    ): Promise<void> {
+      return apiClient.patch(
+        `/modelosprocedimentos/${modeloProcedimentoId}/etapas/reordenar`,
+        {
+          idsEtapas: stageIds,
+        }
       );
     },
   };
@@ -126,12 +185,12 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
  */
 export const ApiStageTemplateService: IStageTemplateService = {
   async getAll(): Promise<StageTemplate[]> {
-    return apiClient.get<StageTemplate[]>("/stage-templates");
+    return apiClient.get<StageTemplate[]>("/modelosetapas");
   },
 
   async getById(id: string): Promise<StageTemplate | undefined> {
     try {
-      return await apiClient.get<StageTemplate>(`/stage-templates/${id}`);
+      return await apiClient.get<StageTemplate>(`/modelosetapas/${id}`);
     } catch (error: any) {
       if (error.status === 404) return undefined;
       throw error;
@@ -139,22 +198,22 @@ export const ApiStageTemplateService: IStageTemplateService = {
   },
 
   async create(data: Omit<StageTemplate, "id">): Promise<StageTemplate> {
-    return apiClient.post<StageTemplate>("/stage-templates", data);
+    return apiClient.post<StageTemplate>("/modelosetapas", data);
   },
 
   async update(
     id: string,
     data: Partial<StageTemplate>
   ): Promise<StageTemplate> {
-    return apiClient.put<StageTemplate>(`/stage-templates/${id}`, data);
+    return apiClient.put<StageTemplate>(`/modelosetapas/${id}`, data);
   },
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`/stage-templates/${id}`);
+    return apiClient.delete(`/modelosetapas/${id}`);
   },
 
   async searchByName(name: string): Promise<StageTemplate[]> {
-    const query = buildQueryString({ search: name });
-    return apiClient.get<StageTemplate[]>(`/stage-templates${query}`);
+    const query = buildQueryString({ nome: name });
+    return apiClient.get<StageTemplate[]>(`/modelosetapas/buscar${query}`);
   },
 };

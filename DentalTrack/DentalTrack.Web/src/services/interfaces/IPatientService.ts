@@ -22,7 +22,7 @@ export interface IPatientService extends IBaseService<Patient> {
 }
 
 export interface PatientFilterOptions extends FilterOptions {
-  healthInsuranceName?: string;
-  city?: string;
-  state?: string;
+  convenioNome?: string;
+  cidade?: string;
+  estado?: string;
 }

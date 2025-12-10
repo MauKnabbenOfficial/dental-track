@@ -1,4 +1,5 @@
 using DentalTrack.Infrastructure.DependencyInjection;
+using DentalTrack.Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -7,7 +8,7 @@ namespace DentalTrack.WebApi
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,11 @@ namespace DentalTrack.WebApi
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+                    policy.WithOrigins(
+                            "http://localhost:8080",
+                            "http://localhost:5173",
+                            "http://localhost:3000"
+                          )
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();
@@ -86,7 +91,20 @@ namespace DentalTrack.WebApi
             // Add HttpContextAccessor for getting current user
             builder.Services.AddHttpContextAccessor();
 
+            // Register DatabaseSeeder
+            builder.Services.AddScoped<DatabaseSeeder>();
+
             var app = builder.Build();
+
+            // Seed database in development
+            if (app.Environment.IsDevelopment())
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+                    await seeder.SeedAsync();
+                }
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

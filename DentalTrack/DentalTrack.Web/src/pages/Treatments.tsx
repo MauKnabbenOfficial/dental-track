@@ -66,10 +66,10 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 const statusConfig = {
-  scheduled: { label: "Agendado", variant: "outline" as const },
-  in_progress: { label: "Em Andamento", variant: "default" as const },
-  completed: { label: "Concluído", variant: "secondary" as const },
-  cancelled: { label: "Cancelado", variant: "destructive" as const },
+  agendado: { label: "Agendado", variant: "outline" as const },
+  em_andamento: { label: "Em Andamento", variant: "default" as const },
+  concluido: { label: "Concluído", variant: "secondary" as const },
+  cancelado: { label: "Cancelado", variant: "destructive" as const },
 };
 
 export default function Treatments() {
@@ -107,51 +107,69 @@ export default function Treatments() {
 
   // Form state
   const [formData, setFormData] = useState({
-    patientId: "",
-    templateId: "",
-    dentistId: "",
-    startDate: "",
-    totalCost: 0,
-    notes: "",
+    pacienteId: "",
+    modeloProcedimentoId: "",
+    dentistaId: "",
+    dataInicio: "",
+    custoTotal: 0,
+    observacoes: "",
     createFinancialRecord: false,
   });
 
-  // Stage dates for new treatment - map of stage orderIndex to scheduled date
+  // Stage dates for new treatment - map of stage ordemExibicao to scheduled date
   const [stageDates, setStageDates] = useState<Record<number, string>>({});
 
   // Get selected template stages for the form (new treatment)
+  // UI-friendly stages (map backend Portuguese fields to the UI shape expected by timeline)
   const selectedTemplateStages = useMemo(() => {
-    if (!formData.templateId) return [];
-    return getStagesByTemplateId(formData.templateId);
-  }, [formData.templateId, getStagesByTemplateId]);
+    if (!formData.modeloProcedimentoId) return [];
+    const stages = getStagesByTemplateId(formData.modeloProcedimentoId);
+    return stages.map((s) => ({
+      id: s.id,
+      name: s.nome,
+      ordemExibicao: s.ordemExibicao,
+      description: s.descricao,
+      checklistItems: s.itensChecklist || [],
+    }));
+  }, [formData.modeloProcedimentoId, getStagesByTemplateId]);
 
   // Get existing stages for editing treatment
   const editingTreatmentStages = useMemo(() => {
     if (!editingTreatment) return [];
-    return getStagesByTreatmentId(editingTreatment.id);
+    const stages = getStagesByTreatmentId(editingTreatment.id);
+    return stages.map((s) => ({
+      id: s.id,
+      name: s.nome,
+      ordemExibicao: s.ordemExibicao,
+      status: s.status,
+      scheduledDate: s.dataAgendada,
+      attachments: s.anexos || [],
+      checklistItems: s.itensChecklist || [],
+      completedChecklist: s.checklistConcluido || [],
+    }));
   }, [editingTreatment, getStagesByTreatmentId]);
 
   // Get all attachments from treatment stages for the info tab
   const treatmentAttachments = useMemo(() => {
     if (!selectedTreatment) return [];
-    const stages = getStagesByTreatmentId(selectedTreatment.id);
-    return stages
-      .filter((s) => s.attachments && s.attachments.length > 0)
-      .map((s) => ({
-        stageName: s.name,
-        stageIndex: s.orderIndex,
-        status: s.status,
-        attachments: s.attachments || [],
-      }));
+    const stages = getStagesByTreatmentId(selectedTreatment.id).map((s) => ({
+      stageName: s.nome,
+      stageIndex: s.ordemExibicao,
+      status: s.status,
+      attachments: s.anexos || [],
+    }));
+    return stages.filter((s) => s.attachments && s.attachments.length > 0);
   }, [selectedTreatment, getStagesByTreatmentId]);
 
-  const filteredTreatments = treatments.filter((t) => {
-    const patient = getPatientById(t.patientId);
-    const template = getTemplateById(t.templateId);
+  const filteredTreatments = (treatments as Treatment[]).filter((t) => {
+    const patient = getPatientById(t.pacienteId);
+    const template = getTemplateById(t.modeloProcedimentoId);
+    const templateName = (template && template.nome) || "";
     const matchesSearch =
-      patient?.name.toLowerCase().includes(search.toLowerCase()) ||
-      template?.name.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || t.status === statusFilter;
+      (patient?.nome || "").toLowerCase().includes(search.toLowerCase()) ||
+      templateName.toLowerCase().includes(search.toLowerCase());
+    const status = t.status;
+    const matchesStatus = statusFilter === "all" || status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -169,12 +187,12 @@ export default function Treatments() {
 
   const resetForm = () => {
     setFormData({
-      patientId: "",
-      templateId: "",
-      dentistId: "",
-      startDate: "",
-      totalCost: 0,
-      notes: "",
+      pacienteId: "",
+      modeloProcedimentoId: "",
+      dentistaId: "",
+      dataInicio: "",
+      custoTotal: 0,
+      observacoes: "",
       createFinancialRecord: false,
     });
     setStageDates({});
@@ -184,20 +202,22 @@ export default function Treatments() {
   const openEditDialog = (treatment: Treatment) => {
     setEditingTreatment(treatment);
     setFormData({
-      patientId: treatment.patientId,
-      templateId: treatment.templateId,
-      dentistId: treatment.dentistId,
-      startDate: treatment.startDate,
-      totalCost: treatment.totalCost,
-      notes: treatment.notes || "",
+      pacienteId: treatment.pacienteId,
+      modeloProcedimentoId: treatment.modeloProcedimentoId,
+      dentistaId: treatment.dentistaId,
+      dataInicio: treatment.dataInicio,
+      custoTotal: treatment.custoTotal,
+      observacoes: treatment.observacoes || "",
       createFinancialRecord: false,
     });
     // Load existing stage dates for editing
     const existingStages = getStagesByTreatmentId(treatment.id);
     const dates: Record<number, string> = {};
-    existingStages.forEach((stage) => {
-      if (stage.scheduledDate) {
-        dates[stage.orderIndex] = stage.scheduledDate;
+    existingStages.forEach((stage: any) => {
+      const key = stage.ordemExibicao ?? stage.orderIndex;
+      const dateVal = stage.dataAgendada || stage.scheduledDate;
+      if (dateVal) {
+        dates[key] = dateVal;
       }
     });
     setStageDates(dates);
@@ -207,83 +227,94 @@ export default function Treatments() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate totalCost
-    if (formData.totalCost <= 0 && !editingTreatment) {
+    // Validate custoTotal
+    if (formData.custoTotal <= 0 && !editingTreatment) {
       toast.error("O valor total deve ser maior que zero!");
       return;
     }
 
     if (editingTreatment) {
       updateTreatment(editingTreatment.id, {
-        ...formData,
+        ...editingTreatment,
+        pacienteId: formData.pacienteId,
+        modeloProcedimentoId: formData.modeloProcedimentoId,
+        dentistaId: formData.dentistaId,
+        dataInicio: formData.dataInicio,
+        custoTotal: formData.custoTotal,
+        observacoes: formData.observacoes,
         status: editingTreatment.status,
       });
 
       // Update stage dates if changed
       const existingStages = getStagesByTreatmentId(editingTreatment.id);
-      existingStages.forEach((stage) => {
-        const newDate = stageDates[stage.orderIndex];
-        if (newDate !== undefined && newDate !== stage.scheduledDate) {
-          updateTreatmentStage(stage.id, { scheduledDate: newDate });
+      existingStages.forEach((stage: any) => {
+        const key = stage.ordemExibicao ?? stage.orderIndex;
+        const newDate = stageDates[key];
+        const currentDate = stage.dataAgendada || stage.scheduledDate;
+        if (newDate !== undefined && newDate !== currentDate) {
+          updateTreatmentStage(stage.id, { dataAgendada: newDate });
         }
       });
 
       toast.success("Atendimento atualizado!");
     } else {
       const treatmentId = generateId();
-      const template = getTemplateById(formData.templateId);
-      const templateStages = getStagesByTemplateId(formData.templateId);
+      const template = getTemplateById(formData.modeloProcedimentoId);
+      const templateStages = getStagesByTemplateId(
+        formData.modeloProcedimentoId
+      );
 
-      // Create treatment
+      // Create treatment (Portuguese DTO keys)
       addTreatment({
         id: treatmentId,
-        patientId: formData.patientId,
-        templateId: formData.templateId,
-        dentistId: formData.dentistId,
-        startDate: formData.startDate,
-        totalCost: formData.totalCost || template?.baseCost || 0,
-        notes: formData.notes,
-        status: "scheduled",
-        currentStageId: "",
+        pacienteId: formData.pacienteId,
+        modeloProcedimentoId: formData.modeloProcedimentoId,
+        dentistaId: formData.dentistaId,
+        dataInicio: formData.dataInicio,
+        custoTotal: formData.custoTotal || template?.custoBase || 0,
+        observacoes: formData.observacoes,
+        status: "agendado",
+        etapaAtualId: "",
       });
 
-      // Copy stages from template with individual dates and checklist
-      templateStages.forEach((stage, index) => {
+      // Copy stages from template with individual dates and checklist (use Portuguese stage fields)
+      templateStages.forEach((stage: any, index: number) => {
         // Use custom date if set, otherwise use treatment start date for first stage, empty for others
-        const customDate = stageDates[stage.orderIndex];
+        const key = stage.ordemExibicao ?? index;
+        const customDate = stageDates[key];
         const scheduledDate =
-          customDate || (index === 0 ? formData.startDate : "");
-
+          customDate || (index === 0 ? formData.dataInicio : "");
         addTreatmentStage({
           id: generateId(),
-          treatmentId,
-          name: stage.name,
-          status: index === 0 ? "in_progress" : "pending",
-          orderIndex: stage.orderIndex,
-          scheduledDate,
-          notes: "",
-          checklistItems: stage.checklistItems || [],
-          completedChecklist: [],
+          atendimentoId: treatmentId,
+          nome: stage.nome,
+          status: index === 0 ? "em_andamento" : "pendente",
+          ordemExibicao: stage.ordemExibicao ?? index,
+          dataAgendada: scheduledDate,
+          observacoes: "",
+          itensChecklist: stage.itensChecklist || [],
+          checklistConcluido: [],
         });
       });
 
-      // Create financial record if requested
+      // Create financial record if requested (use existing ExtendedFinancialRecord shape used elsewhere)
       if (formData.createFinancialRecord && template) {
         const record: ExtendedFinancialRecord = {
           id: generateId(),
+          // keep compatibility: use treatmentId in the english key as used elsewhere
           treatmentId,
           type: "income",
-          amount: formData.totalCost || template.baseCost,
-          date: formData.startDate,
-          description: `${template.name} - ${
-            getPatientById(formData.patientId)?.name
+          amount: formData.custoTotal || (template as any).custoBase,
+          date: formData.dataInicio,
+          description: `${(template as any).nome || (template as any).name} - ${
+            getPatientById(formData.pacienteId)?.nome
           }`,
-          category: template.category,
+          category: (template as any).categoria || (template as any).category,
           status: "pending",
           responsibleType: "patient",
-          patientId: formData.patientId,
-          createdBy: "1", // TODO: usar usuário logado
-        };
+          patientId: formData.pacienteId,
+          createdBy: "1",
+        } as any;
         addFinancialRecord(record);
       }
 
@@ -345,9 +376,9 @@ export default function Treatments() {
               <div>
                 <Label>Paciente</Label>
                 <Select
-                  value={formData.patientId}
+                  value={(formData as any).pacienteId}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, patientId: value }))
+                    setFormData((prev) => ({ ...prev, pacienteId: value }))
                   }
                 >
                   <SelectTrigger>
@@ -356,7 +387,7 @@ export default function Treatments() {
                   <SelectContent>
                     {patients.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.name}
+                        {p.nome || (p as any).name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -365,13 +396,13 @@ export default function Treatments() {
               <div>
                 <Label>Procedimento</Label>
                 <Select
-                  value={formData.templateId}
+                  value={(formData as any).modeloProcedimentoId}
                   onValueChange={(value) => {
                     const template = getTemplateById(value);
                     setFormData((prev) => ({
                       ...prev,
-                      templateId: value,
-                      totalCost: template?.baseCost || 0,
+                      modeloProcedimentoId: value,
+                      custoTotal: (template as any)?.custoBase || 0,
                     }));
                   }}
                 >
@@ -381,7 +412,10 @@ export default function Treatments() {
                   <SelectContent>
                     {procedureTemplates.map((t) => (
                       <SelectItem key={t.id} value={t.id}>
-                        {t.name} - {formatCurrency(t.baseCost)}
+                        {(t as any).nome || (t as any).name} -{" "}
+                        {formatCurrency(
+                          (t as any).custoBase || (t as any).baseCost || 0
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -390,9 +424,9 @@ export default function Treatments() {
               <div>
                 <Label>Dentista Responsável</Label>
                 <Select
-                  value={formData.dentistId}
+                  value={(formData as any).dentistaId}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, dentistId: value }))
+                    setFormData((prev) => ({ ...prev, dentistaId: value }))
                   }
                 >
                   <SelectTrigger>
@@ -401,7 +435,7 @@ export default function Treatments() {
                   <SelectContent>
                     {dentists.map((d) => (
                       <SelectItem key={d.id} value={d.id}>
-                        {d.name}
+                        {d.nome || (d as any).name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -412,11 +446,11 @@ export default function Treatments() {
                   <Label>Data de Início</Label>
                   <Input
                     type="date"
-                    value={formData.startDate}
+                    value={(formData as any).dataInicio}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        startDate: e.target.value,
+                        dataInicio: e.target.value,
                       }))
                     }
                     required
@@ -428,7 +462,7 @@ export default function Treatments() {
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
-                    value={formData.totalCost || ""}
+                    value={(formData as any).custoTotal || ""}
                     onChange={(e) => {
                       const value = e.target.value;
                       // Allow empty, numbers, and decimal point
@@ -436,7 +470,7 @@ export default function Treatments() {
                         const numValue = value === "" ? 0 : parseFloat(value);
                         setFormData((prev) => ({
                           ...prev,
-                          totalCost: isNaN(numValue) ? 0 : numValue,
+                          custoTotal: isNaN(numValue) ? 0 : numValue,
                         }));
                       }
                     }}
@@ -444,15 +478,16 @@ export default function Treatments() {
                       // Ensure value is positive on blur
                       const value = parseFloat(e.target.value) || 0;
                       if (value < 0) {
-                        setFormData((prev) => ({ ...prev, totalCost: 0 }));
+                        setFormData((prev) => ({ ...prev, custoTotal: 0 }));
                       }
                     }}
                   />
-                  {formData.totalCost <= 0 && formData.templateId && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      Valor deve ser maior que zero
-                    </p>
-                  )}
+                  {(formData as any).custoTotal <= 0 &&
+                    (formData as any).modeloProcedimentoId && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        Valor deve ser maior que zero
+                      </p>
+                    )}
                 </div>
               </div>
               {!editingTreatment && (
@@ -506,7 +541,7 @@ export default function Treatments() {
                             ${index === 0 ? "bg-blue-500" : "bg-slate-400"}
                           `}
                           >
-                            {stage.orderIndex}
+                            {stage.ordemExibicao ?? stage.orderIndex}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">
@@ -515,7 +550,9 @@ export default function Treatments() {
                             <p className="text-xs text-muted-foreground">
                               {index === 0
                                 ? "Primeira etapa"
-                                : `Etapa ${stage.orderIndex}`}
+                                : `Etapa ${
+                                    stage.ordemExibicao ?? stage.orderIndex
+                                  }`}
                             </p>
                           </div>
                           <div className="flex-shrink-0">
@@ -523,13 +560,18 @@ export default function Treatments() {
                               type="date"
                               className="w-[150px] h-8 text-sm"
                               value={
-                                stageDates[stage.orderIndex] ||
-                                (index === 0 ? formData.startDate : "")
+                                stageDates[
+                                  stage.ordemExibicao ?? stage.orderIndex
+                                ] ||
+                                (index === 0
+                                  ? (formData as any).dataInicio
+                                  : "")
                               }
                               onChange={(e) => {
                                 setStageDates((prev) => ({
                                   ...prev,
-                                  [stage.orderIndex]: e.target.value,
+                                  [stage.ordemExibicao ?? stage.orderIndex]:
+                                    e.target.value,
                                 }));
                               }}
                               placeholder="Selecionar"
@@ -567,17 +609,17 @@ export default function Treatments() {
                     <div className="space-y-2">
                       {editingTreatmentStages.map((stage) => {
                         const statusColors = {
-                          completed: "bg-emerald-500",
-                          in_progress: "bg-blue-500",
-                          pending: "bg-slate-400",
-                          skipped: "bg-amber-500",
-                        };
+                          concluido: "bg-emerald-500",
+                          em_andamento: "bg-blue-500",
+                          pendente: "bg-slate-400",
+                          pulado: "bg-amber-500",
+                        } as Record<string, string>;
                         const statusLabels = {
-                          completed: "Concluído",
-                          in_progress: "Em andamento",
-                          pending: "Pendente",
-                          skipped: "Pulado",
-                        };
+                          concluido: "Concluído",
+                          em_andamento: "Em andamento",
+                          pendente: "Pendente",
+                          pulado: "Pulado",
+                        } as Record<string, string>;
                         return (
                           <div
                             key={stage.id}
@@ -589,12 +631,12 @@ export default function Treatments() {
                               ${statusColors[stage.status]}
                             `}
                             >
-                              {stage.status === "completed" ? (
+                              {stage.status === "concluido" ? (
                                 <Check className="h-4 w-4" />
-                              ) : stage.status === "skipped" ? (
+                              ) : stage.status === "pulado" ? (
                                 <SkipForward className="h-4 w-4" />
                               ) : (
-                                stage.orderIndex
+                                stage.ordemExibicao ?? stage.orderIndex
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -616,16 +658,21 @@ export default function Treatments() {
                               <Input
                                 type="date"
                                 className="w-[150px] h-8 text-sm"
-                                value={stageDates[stage.orderIndex] || ""}
+                                value={
+                                  stageDates[
+                                    stage.ordemExibicao ?? stage.orderIndex
+                                  ] || ""
+                                }
                                 onChange={(e) => {
                                   setStageDates((prev) => ({
                                     ...prev,
-                                    [stage.orderIndex]: e.target.value,
+                                    [stage.ordemExibicao ?? stage.orderIndex]:
+                                      e.target.value,
                                   }));
                                 }}
                                 disabled={
-                                  stage.status === "completed" ||
-                                  stage.status === "skipped"
+                                  stage.status === "concluido" ||
+                                  stage.status === "pulado"
                                 }
                               />
                             </div>
@@ -673,10 +720,10 @@ export default function Treatments() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="scheduled">Agendado</SelectItem>
-                <SelectItem value="in_progress">Em Andamento</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="agendado">Agendado</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="concluido">Concluído</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -704,13 +751,15 @@ export default function Treatments() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTreatments.map((treatment) => {
-                const patient = getPatientById(treatment.patientId);
-                const template = getTemplateById(treatment.templateId);
-                const dentist = getUserById(treatment.dentistId);
+              {filteredTreatments.map((treatment: Treatment) => {
+                const patient = getPatientById(treatment.pacienteId);
+                const template = getTemplateById(
+                  treatment.modeloProcedimentoId
+                );
+                const dentist = getUserById(treatment.dentistaId);
                 const stages = getStagesByTreatmentId(treatment.id);
                 const completedStages = stages.filter(
-                  (s) => s.status === "completed"
+                  (s) => s.status === "concluido"
                 ).length;
 
                 return (
@@ -718,12 +767,12 @@ export default function Treatments() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{patient?.name}</span>
+                        <span className="font-medium">{patient?.nome}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{template?.name}</p>
+                        <p className="font-medium">{template?.nome}</p>
                         <p className="text-xs text-muted-foreground">
                           {completedStages}/{stages.length} etapas
                         </p>
@@ -733,18 +782,21 @@ export default function Treatments() {
                       <div className="flex items-center gap-2">
                         <Stethoscope className="h-4 w-4 text-muted-foreground" />
                         <span>
-                          {dentist?.name.split(" ").slice(0, 2).join(" ")}
+                          {(dentist?.nome || "")
+                            .split(" ")
+                            .slice(0, 2)
+                            .join(" ")}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        {formatDate(treatment.startDate)}
+                        {formatDate(treatment.dataInicio)}
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {formatCurrency(treatment.totalCost)}
+                      {formatCurrency(treatment.custoTotal || 0)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusConfig[treatment.status].variant}>
@@ -807,10 +859,11 @@ export default function Treatments() {
                 <HorizontalTimeline
                   stages={getStagesByTreatmentId(selectedTreatment.id)}
                   patientName={
-                    getPatientById(selectedTreatment.patientId)?.name || ""
+                    getPatientById(selectedTreatment.pacienteId)?.nome || ""
                   }
                   treatmentName={
-                    getTemplateById(selectedTreatment.templateId)?.name || ""
+                    getTemplateById(selectedTreatment.modeloProcedimentoId)
+                      ?.nome || ""
                   }
                   onStageUpdate={handleStageUpdate}
                 />
@@ -825,7 +878,7 @@ export default function Treatments() {
                           Paciente
                         </p>
                         <p className="font-medium">
-                          {getPatientById(selectedTreatment.patientId)?.name}
+                          {getPatientById(selectedTreatment.pacienteId)?.nome}
                         </p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
@@ -833,7 +886,11 @@ export default function Treatments() {
                           Procedimento
                         </p>
                         <p className="font-medium">
-                          {getTemplateById(selectedTreatment.templateId)?.name}
+                          {
+                            getTemplateById(
+                              selectedTreatment.modeloProcedimentoId
+                            )?.nome
+                          }
                         </p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
@@ -841,7 +898,7 @@ export default function Treatments() {
                           Dentista
                         </p>
                         <p className="font-medium">
-                          {getUserById(selectedTreatment.dentistId)?.name}
+                          {getUserById(selectedTreatment.dentistaId)?.nome}
                         </p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
@@ -849,7 +906,7 @@ export default function Treatments() {
                           Valor Total
                         </p>
                         <p className="font-medium">
-                          {formatCurrency(selectedTreatment.totalCost)}
+                          {formatCurrency(selectedTreatment.custoTotal || 0)}
                         </p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
@@ -857,7 +914,7 @@ export default function Treatments() {
                           Data de Início
                         </p>
                         <p className="font-medium">
-                          {formatDate(selectedTreatment.startDate)}
+                          {formatDate(selectedTreatment.dataInicio)}
                         </p>
                       </div>
                       <div className="p-4 bg-muted rounded-lg">
@@ -872,12 +929,12 @@ export default function Treatments() {
                       </div>
                     </div>
 
-                    {selectedTreatment.notes && (
+                    {selectedTreatment.observacoes && (
                       <div className="p-4 bg-muted rounded-lg">
                         <p className="text-sm text-muted-foreground">
                           Observações
                         </p>
-                        <p>{selectedTreatment.notes}</p>
+                        <p>{selectedTreatment.observacoes}</p>
                       </div>
                     )}
 
@@ -925,21 +982,21 @@ export default function Treatments() {
                                     className={`
                                     flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-medium
                                     ${
-                                      stageData.status === "completed"
+                                      stageData.status === "concluido"
                                         ? "bg-emerald-500"
-                                        : stageData.status === "in_progress"
+                                        : stageData.status === "em_andamento"
                                         ? "bg-blue-500"
-                                        : stageData.status === "skipped"
+                                        : stageData.status === "pulado"
                                         ? "bg-amber-500"
                                         : "bg-slate-400"
                                     }
                                   `}
                                   >
-                                    {stageData.status === "completed" ? (
+                                    {stageData.status === "concluido" ? (
                                       <Check className="h-4 w-4" />
-                                    ) : stageData.status === "in_progress" ? (
+                                    ) : stageData.status === "em_andamento" ? (
                                       <Play className="h-4 w-4" />
-                                    ) : stageData.status === "skipped" ? (
+                                    ) : stageData.status === "pulado" ? (
                                       <SkipForward className="h-4 w-4" />
                                     ) : (
                                       <Clock className="h-4 w-4" />

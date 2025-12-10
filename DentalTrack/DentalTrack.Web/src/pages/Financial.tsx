@@ -116,7 +116,7 @@ export default function Financial() {
   });
 
   const filteredRecords = financialRecords.filter((r) => {
-    const matchesSearch = r.description
+    const matchesSearch = (r.description || "")
       .toLowerCase()
       .includes(search.toLowerCase());
     const matchesType = typeFilter === "all" || r.type === typeFilter;
@@ -476,7 +476,7 @@ export default function Financial() {
                       const template = getTemplateById(t.templateId);
                       return (
                         <SelectItem key={t.id} value={t.id}>
-                          {patient?.name} - {template?.name}
+                          {patient?.nome} - {template?.name}
                         </SelectItem>
                       );
                     })}
@@ -773,7 +773,7 @@ export default function Financial() {
                         ) : (
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-primary" />
-                            <span>{patient?.name || "—"}</span>
+                            <span>{patient?.nome || "—"}</span>
                           </div>
                         )}
                       </TableCell>

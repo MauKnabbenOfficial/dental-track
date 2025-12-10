@@ -87,7 +87,7 @@ export default function Dashboard() {
   } = useData();
 
   const inProgressTreatments = treatments.filter(
-    (t) => t.status === "in_progress"
+    (t) => (t as any).status === "em_andamento"
   );
 
   // Find current appointment (happening right now)
@@ -98,14 +98,26 @@ export default function Dashboard() {
     // Find stages scheduled for today
     for (const treatment of inProgressTreatments) {
       const stages = getStagesByTreatmentId(treatment.id);
-      const currentStage = stages.find((s) => s.status === "in_progress");
-      if (currentStage?.scheduledDate === today) {
+      const currentStage = stages.find(
+        (s: any) => (s as any).status === "em_andamento"
+      );
+      const stageDate =
+        (currentStage as any)?.dataAgendada ||
+        (currentStage as any)?.scheduledDate;
+      if (stageDate === today) {
         return {
           treatment,
           stage: currentStage,
-          patient: getPatientById(treatment.patientId),
-          template: getTemplateById(treatment.templateId),
-          dentist: getUserById(treatment.dentistId),
+          patient: getPatientById(
+            (treatment as any).pacienteId || (treatment as any).patientId
+          ),
+          template: getTemplateById(
+            (treatment as any).modeloProcedimentoId ||
+              (treatment as any).templateId
+          ),
+          dentist: getUserById(
+            (treatment as any).dentistaId || (treatment as any).dentistId
+          ),
         };
       }
     }
@@ -114,13 +126,22 @@ export default function Dashboard() {
     if (inProgressTreatments.length > 0) {
       const treatment = inProgressTreatments[0];
       const stages = getStagesByTreatmentId(treatment.id);
-      const currentStage = stages.find((s) => s.status === "in_progress");
+      const currentStage = stages.find(
+        (s: any) => (s as any).status === "em_andamento"
+      );
       return {
         treatment,
         stage: currentStage,
-        patient: getPatientById(treatment.patientId),
-        template: getTemplateById(treatment.templateId),
-        dentist: getUserById(treatment.dentistId),
+        patient: getPatientById(
+          (treatment as any).pacienteId || (treatment as any).patientId
+        ),
+        template: getTemplateById(
+          (treatment as any).modeloProcedimentoId ||
+            (treatment as any).templateId
+        ),
+        dentist: getUserById(
+          (treatment as any).dentistaId || (treatment as any).dentistId
+        ),
       };
     }
 
@@ -297,7 +318,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14">
                     <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                      {currentAppointment.patient?.name
+                      {currentAppointment.patient?.nome
                         .split(" ")
                         .map((n) => n[0])
                         .slice(0, 2)
@@ -306,7 +327,7 @@ export default function Dashboard() {
                   </Avatar>
                   <div>
                     <h3 className="font-semibold text-lg">
-                      {currentAppointment.patient?.name}
+                      {currentAppointment.patient?.nome}
                     </h3>
                     <p className="text-muted-foreground">
                       {currentAppointment.template?.name}
@@ -413,9 +434,18 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-3">
                 {inProgressTreatments.slice(0, 5).map((treatment) => {
-                  const patient = getPatientById(treatment.patientId);
-                  const template = getTemplateById(treatment.templateId);
-                  const dentist = getUserById(treatment.dentistId);
+                  const patient = getPatientById(
+                    (treatment as any).pacienteId ||
+                      (treatment as any).patientId
+                  );
+                  const template = getTemplateById(
+                    (treatment as any).modeloProcedimentoId ||
+                      (treatment as any).templateId
+                  );
+                  const dentist = getUserById(
+                    (treatment as any).dentistaId ||
+                      (treatment as any).dentistId
+                  );
 
                   return (
                     <div
@@ -425,7 +455,7 @@ export default function Dashboard() {
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                          {patient?.name
+                          {patient?.nome
                             .split(" ")
                             .map((n) => n[0])
                             .slice(0, 2)
@@ -434,15 +464,15 @@ export default function Dashboard() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">
-                          {patient?.name}
+                          {patient?.nome}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {template?.name}
+                          {template?.nome || template?.name}
                         </p>
                       </div>
                       <div className="text-right">
                         <Badge variant="secondary" className="text-xs">
-                          {template?.category}
+                          {template?.categoria || template?.category}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
                           {dentist?.name.split(" ").slice(0, 2).join(" ")}

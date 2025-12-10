@@ -1,44 +1,7 @@
-import { User, users as initialUsers } from "@/data/mockData";
-import { IUserService } from "../interfaces/IUserService";
-import { MockStorage, simulateDelay } from "./mockUtils";
-
-const storage = new MockStorage<User>("dentaltrack_users", initialUsers);
-
-/**
- * Implementação Mock do serviço de Usuários
- */
-export const MockUserService: IUserService = {
-  async getAll(): Promise<User[]> {
-    await simulateDelay();
-    return storage.getAll();
-  },
-
-  async getById(id: string): Promise<User | undefined> {
-    await simulateDelay();
-    return storage.getById(id);
-  },
-
-  async create(data: Omit<User, "id">): Promise<User> {
-    await simulateDelay();
-    return storage.create(data);
-  },
-
-  async update(id: string, data: Partial<User>): Promise<User> {
-    await simulateDelay();
-    return storage.update(id, data);
-  },
-
-  async delete(id: string): Promise<void> {
-    await simulateDelay();
-    storage.delete(id);
-  },
-
-  async getByRole(role: User["role"]): Promise<User[]> {
-    await simulateDelay();
-    return storage.getAll().filter((user) => user.role === role);
-  },
-
-  async getDentists(): Promise<User[]> {
-    return this.getByRole("dentist");
-  },
-};
+// Mock services removed — runtime mocks are disabled.
+// The example data has been moved to `src/data/examples/mockData.json`.
+// This file intentionally exports nothing to prevent accidental runtime usage.
+// Archived implementation moved to `src/services/archive/mock/MockUserService.ts`.
+// Runtime mocks are disabled. Keep this as a harmless stub to avoid
+// accidental runtime usage.
+export {};

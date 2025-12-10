@@ -1,18 +1,33 @@
 import { User } from "@/data/mockData";
 import { IUserService } from "../interfaces/IUserService";
 import { apiClient, buildQueryString } from "../http";
+import { mapApiUserToUser } from "./ApiAuthService";
+
+interface ApiUser {
+  id: string;
+  nome: string;
+  email: string;
+  perfilId?: string;
+  perfilNome?: string;
+  especialidade?: string;
+  avatar?: string;
+  ativo?: boolean;
+  dtCadastro?: string;
+}
 
 /**
  * Implementação API do serviço de Usuários
  */
 export const ApiUserService: IUserService = {
   async getAll(): Promise<User[]> {
-    return apiClient.get<User[]>("/users");
+    const data = await apiClient.get<ApiUser[]>("/usuarios");
+    return data.map((u) => mapApiUserToUser(u as any) as User);
   },
 
   async getById(id: string): Promise<User | undefined> {
     try {
-      return await apiClient.get<User>(`/users/${id}`);
+      const data = await apiClient.get<ApiUser>(`/usuarios/${id}`);
+      return mapApiUserToUser(data as any);
     } catch (error: any) {
       if (error.status === 404) return undefined;
       throw error;
@@ -20,23 +35,26 @@ export const ApiUserService: IUserService = {
   },
 
   async create(data: Omit<User, "id">): Promise<User> {
-    return apiClient.post<User>("/users", data);
+    // send as-is; assume backend accepts similar payload for creation
+    return apiClient.post<User>("/usuarios", data);
   },
 
   async update(id: string, data: Partial<User>): Promise<User> {
-    return apiClient.put<User>(`/users/${id}`, data);
+    const updated = await apiClient.put<ApiUser>(`/usuarios/${id}`, data);
+    return mapApiUserToUser(updated as any) as User;
   },
 
   async delete(id: string): Promise<void> {
-    return apiClient.delete(`/users/${id}`);
+    return apiClient.delete(`/usuarios/${id}`);
   },
 
   async getByRole(role: User["role"]): Promise<User[]> {
-    const query = buildQueryString({ role });
-    return apiClient.get<User[]>(`/users${query}`);
+    const data = await apiClient.get<ApiUser[]>(`/usuarios/perfil/${role}`);
+    return data.map((u) => mapApiUserToUser(u as any) as User);
   },
 
   async getDentists(): Promise<User[]> {
-    return this.getByRole("dentist");
+    const data = await apiClient.get<ApiUser[]>("/usuarios/dentistas");
+    return data.map((u) => mapApiUserToUser(u as any) as User);
   },
 };
