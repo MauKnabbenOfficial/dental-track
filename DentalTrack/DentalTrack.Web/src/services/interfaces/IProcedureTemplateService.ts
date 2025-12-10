@@ -1,4 +1,4 @@
-import { ProcedureTemplate, ProcedureTemplateStage } from "@/data/mockData";
+import { ProcedureTemplate, ProcedureTemplateStage } from "@/types/backendDtos";
 import { IBaseService } from "./IBaseService";
 import { StageTemplate } from "@/contexts/DataContext";
 
@@ -29,6 +29,28 @@ export interface IProcedureTemplateStageService
   getByTemplateId(
     modeloProcedimentoId: string
   ): Promise<ProcedureTemplateStage[]>;
+
+  /**
+   * Busca etapa por id — alguns endpoints no backend requerem `modeloProcedimentoId` no caminho.
+   */
+  getById(
+    id: string,
+    modeloProcedimentoId?: string
+  ): Promise<ProcedureTemplateStage | undefined>;
+
+  /**
+   * Atualiza uma etapa — quando disponível, o `modeloProcedimentoId` será usado na URL aninhada.
+   */
+  update(
+    id: string,
+    data: Partial<ProcedureTemplateStage>,
+    modeloProcedimentoId?: string
+  ): Promise<ProcedureTemplateStage>;
+
+  /**
+   * Exclui uma etapa — quando disponível, o `modeloProcedimentoId` será usado na URL aninhada.
+   */
+  delete(id: string, modeloProcedimentoId?: string): Promise<void>;
 
   /**
    * Reordena etapas (troca posição de duas etapas)

@@ -49,7 +49,10 @@ export const MockTreatmentStageService: ITreatmentStageService = {
     await simulateDelay();
     return stageStorage.getAll();
   },
-  async getById(id: string): Promise<TreatmentStage | undefined> {
+  async getById(
+    id: string,
+    atendimentoId?: string
+  ): Promise<TreatmentStage | undefined> {
     await simulateDelay();
     return stageStorage.getById(id);
   },
@@ -57,11 +60,15 @@ export const MockTreatmentStageService: ITreatmentStageService = {
     await simulateDelay();
     return stageStorage.create(data);
   },
-  async update(id: string, data: Partial<TreatmentStage>) {
+  async update(
+    id: string,
+    data: Partial<TreatmentStage>,
+    atendimentoId?: string
+  ) {
     await simulateDelay();
     return stageStorage.update(id, data);
   },
-  async delete(id: string): Promise<void> {
+  async delete(id: string, atendimentoId?: string): Promise<void> {
     await simulateDelay();
     stageStorage.delete(id);
   },
@@ -72,25 +79,38 @@ export const MockTreatmentStageService: ITreatmentStageService = {
       .filter((s) => s.treatmentId === treatmentId)
       .sort((a, b) => a.orderIndex - b.orderIndex);
   },
-  async updateStatus(id: string, status, dateCompleted?) {
+  async updateStatus(
+    id: string,
+    status,
+    dateCompleted?,
+    atendimentoId?: string
+  ) {
     await simulateDelay();
     const updates: Partial<TreatmentStage> = { status };
     if (status === "completed" && dateCompleted)
       updates.dateCompleted = dateCompleted;
     return stageStorage.update(id, updates);
   },
-  async updateChecklist(id: string, completedItems: string[]) {
+  async updateChecklist(
+    id: string,
+    completedItems: string[],
+    atendimentoId?: string
+  ) {
     await simulateDelay();
     return stageStorage.update(id, { completedChecklist: completedItems });
   },
-  async addAttachment(id: string, attachment: string) {
+  async addAttachment(id: string, attachment: string, atendimentoId?: string) {
     await simulateDelay();
     const stage = stageStorage.getById(id);
     if (!stage) throw new Error("Stage not found");
     const attachments = [...(stage.attachments || []), attachment];
     return stageStorage.update(id, { attachments });
   },
-  async removeAttachment(id: string, attachment: string) {
+  async removeAttachment(
+    id: string,
+    attachment: string,
+    atendimentoId?: string
+  ) {
     await simulateDelay();
     const stage = stageStorage.getById(id);
     if (!stage) throw new Error("Stage not found");

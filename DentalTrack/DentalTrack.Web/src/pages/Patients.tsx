@@ -45,6 +45,7 @@ import { Patient } from "@/data/mockData";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { StatusAtendimento } from "@/types/backendEnums";
 
 export default function Patients() {
   const {
@@ -212,7 +213,7 @@ export default function Patients() {
   // Get completed treatments for a patient
   const getCompletedTreatments = (patientId: string) => {
     return getTreatmentsByPatientId(patientId).filter(
-      (t) => t.status === "concluido"
+      (t) => t.status === StatusAtendimento.Concluido
     );
   };
 
@@ -317,26 +318,13 @@ export default function Patients() {
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, email: e.target.value }))
                   }
-                  required
                 />
               </div>
+
               <div>
                 <Label>Convênio</Label>
                 <Input
-                  placeholder="Nome do convênio (opcional)"
-                  value={(formData as any).convenioNome}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      convenioNome: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Nº Carteirinha</Label>
-                <Input
-                  placeholder="Número da carteirinha"
+                  placeholder="Código do convênio"
                   value={(formData as any).convenioId}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -685,7 +673,7 @@ export default function Patients() {
                   historyPatient.id
                 );
                 const completedTreatments = allTreatments.filter(
-                  (t) => t.status === "concluido"
+                  (t) => t.status === StatusAtendimento.Concluido
                 );
 
                 if (allTreatments.length === 0) {
@@ -734,15 +722,18 @@ export default function Patients() {
                       </div>
                     )}
 
-                    {allTreatments.filter((t) => t.status !== "concluido")
-                      .length > 0 && (
+                    {allTreatments.filter(
+                      (t) => t.status !== StatusAtendimento.Concluido
+                    ).length > 0 && (
                       <div>
                         <h4 className="font-semibold text-sm text-muted-foreground mb-3">
                           Em Andamento / Agendados
                         </h4>
                         <div className="space-y-3">
                           {allTreatments
-                            .filter((t) => t.status !== "concluido")
+                            .filter(
+                              (t) => t.status !== StatusAtendimento.Concluido
+                            )
                             .map((treatment) => {
                               const template = getTemplateById(
                                 (treatment as any).modeloProcedimentoId

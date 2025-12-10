@@ -1,4 +1,4 @@
-import { ProcedureTemplate, ProcedureTemplateStage } from "@/data/mockData";
+import { ProcedureTemplate, ProcedureTemplateStage } from "@/types/backendDtos";
 import { StageTemplate } from "@/contexts/DataContext";
 import {
   IProcedureTemplateService,
@@ -98,8 +98,16 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
       }
     },
 
-    async getById(id: string): Promise<ProcedureTemplateStage | undefined> {
+    async getById(
+      id: string,
+      modeloProcedimentoId?: string
+    ): Promise<ProcedureTemplateStage | undefined> {
       try {
+        if (modeloProcedimentoId) {
+          return await apiClient.get<ProcedureTemplateStage>(
+            `/modelosprocedimentos/${modeloProcedimentoId}/etapas/${id}`
+          );
+        }
         return await apiClient.get<ProcedureTemplateStage>(
           `/modelosetapas/${id}`
         );
@@ -113,24 +121,63 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
       data: Omit<ProcedureTemplateStage, "id">
     ): Promise<ProcedureTemplateStage> {
       // Backend expects the modeloProcedimentoId path param and DTO fields
-      const modeloId = (data as any).modeloProcedimentoId;
-      return apiClient.post<ProcedureTemplateStage>(
-        `/modelosprocedimentos/${modeloId}/etapas`,
-        data
-      );
+      const modeloId =
+        (data as any).ModeloProcedimentoId ||
+        (data as any).modeloProcedimentoId;
+      // show a dev toast so the developer sees the outgoing attempt
+      if (import.meta.env.DEV) {
+        try {
+          toast.info(`Enviando etapa para backend (modeloId=${modeloId})...`);
+        } catch {}
+      }
+      try {
+        const res = await apiClient.post<ProcedureTemplateStage>(
+          `/modelosprocedimentos/${modeloId}/etapas`,
+          data
+        );
+        if (import.meta.env.DEV) {
+          try {
+            toast.success(`Etapa enviada (modeloId=${modeloId})`);
+          } catch {}
+        }
+        return res;
+      } catch (error) {
+        // show an error toast in dev so it's visible
+        try {
+          // @ts-ignore
+          toast.error(
+            `Falha ao enviar etapa (modeloId=${modeloId}): ${
+              (error as any)?.message || JSON.stringify(error)
+            }`
+          );
+        } catch {}
+        throw error;
+      }
     },
 
     async update(
       id: string,
-      data: Partial<ProcedureTemplateStage>
+      data: Partial<ProcedureTemplateStage>,
+      modeloProcedimentoId?: string
     ): Promise<ProcedureTemplateStage> {
+      if (modeloProcedimentoId) {
+        return apiClient.put<ProcedureTemplateStage>(
+          `/modelosprocedimentos/${modeloProcedimentoId}/etapas/${id}`,
+          data
+        );
+      }
       return apiClient.put<ProcedureTemplateStage>(
         `/modelosetapas/${id}`,
         data
       );
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string, modeloProcedimentoId?: string): Promise<void> {
+      if (modeloProcedimentoId) {
+        return apiClient.delete(
+          `/modelosprocedimentos/${modeloProcedimentoId}/etapas/${id}`
+        );
+      }
       return apiClient.delete(`/modelosetapas/${id}`);
     },
 
@@ -184,36 +231,33 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
  * Implementação API do serviço de Templates de Etapas
  */
 export const ApiStageTemplateService: IStageTemplateService = {
-  async getAll(): Promise<StageTemplate[]> {
-    return apiClient.get<StageTemplate[]>("/modelosetapas");
+  async getAll(): Promise<any[]> {
+    return apiClient.get<any[]>("/modelosetapas");
   },
 
-  async getById(id: string): Promise<StageTemplate | undefined> {
+  async getById(id: string): Promise<any | undefined> {
     try {
-      return await apiClient.get<StageTemplate>(`/modelosetapas/${id}`);
+      return await apiClient.get<any>(`/modelosetapas/${id}`);
     } catch (error: any) {
       if (error.status === 404) return undefined;
       throw error;
     }
   },
 
-  async create(data: Omit<StageTemplate, "id">): Promise<StageTemplate> {
-    return apiClient.post<StageTemplate>("/modelosetapas", data);
+  async create(data: Omit<any, "id">): Promise<any> {
+    return apiClient.post<any>("/modelosetapas", data);
   },
 
-  async update(
-    id: string,
-    data: Partial<StageTemplate>
-  ): Promise<StageTemplate> {
-    return apiClient.put<StageTemplate>(`/modelosetapas/${id}`, data);
+  async update(id: string, data: Partial<any>): Promise<any> {
+    return apiClient.put<any>(`/modelosetapas/${id}`, data);
   },
 
   async delete(id: string): Promise<void> {
     return apiClient.delete(`/modelosetapas/${id}`);
   },
 
-  async searchByName(name: string): Promise<StageTemplate[]> {
+  async searchByName(name: string): Promise<any[]> {
     const query = buildQueryString({ nome: name });
-    return apiClient.get<StageTemplate[]>(`/modelosetapas/buscar${query}`);
+    return apiClient.get<any[]>(`/modelosetapas/buscar${query}`);
   },
 };

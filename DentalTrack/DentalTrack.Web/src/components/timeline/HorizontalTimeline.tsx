@@ -59,6 +59,7 @@ import { cn } from "@/lib/utils";
 import { TreatmentStage } from "@/data/mockData";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { StatusEtapa } from "@/types/backendEnums";
 
 interface HorizontalTimelineProps {
   stages: TreatmentStage[];
@@ -68,25 +69,7 @@ interface HorizontalTimelineProps {
 }
 
 const statusConfig = {
-  completed: {
-    icon: Check,
-    bgColor: "bg-emerald-500",
-    borderColor: "border-emerald-500",
-    textColor: "text-emerald-600",
-    badgeVariant: "default" as const,
-    label: "Concluído",
-    gradient: "from-emerald-500/20 to-emerald-500/5",
-  },
-  in_progress: {
-    icon: Play,
-    bgColor: "bg-blue-500",
-    borderColor: "border-blue-500",
-    textColor: "text-blue-600",
-    badgeVariant: "secondary" as const,
-    label: "Em Andamento",
-    gradient: "from-blue-500/20 to-blue-500/5",
-  },
-  pending: {
+  Pendente: {
     icon: Clock,
     bgColor: "bg-slate-400",
     borderColor: "border-slate-300",
@@ -95,7 +78,25 @@ const statusConfig = {
     label: "Pendente",
     gradient: "from-slate-200/50 to-slate-100/30",
   },
-  skipped: {
+  EmAndamento: {
+    icon: Play,
+    bgColor: "bg-blue-500",
+    borderColor: "border-blue-500",
+    textColor: "text-blue-600",
+    badgeVariant: "secondary" as const,
+    label: "Em Andamento",
+    gradient: "from-blue-500/20 to-blue-500/5",
+  },
+  Concluido: {
+    icon: Check,
+    bgColor: "bg-emerald-500",
+    borderColor: "border-emerald-500",
+    textColor: "text-emerald-600",
+    badgeVariant: "default" as const,
+    label: "Concluído",
+    gradient: "from-emerald-500/20 to-emerald-500/5",
+  },
+  Pulado: {
     icon: SkipForward,
     bgColor: "bg-amber-500",
     borderColor: "border-amber-400",
@@ -132,7 +133,7 @@ export function HorizontalTimeline({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [editForm, setEditForm] = useState({
-    status: "" as TreatmentStage["status"],
+    status: "" as string,
     notes: "",
     diagnosis: "",
     attachments: [] as string[],
@@ -145,20 +146,56 @@ export function HorizontalTimeline({
   } | null>(null);
 
   // Calculate progress stats
+  // No mapping functions needed — frontend uses backend enum names directly (PascalCase)
+
+  // Criar mapeamento entre os valores recebidos e os enums
+  const statusMapping: Record<string, StatusEtapa> = {
+    completed: StatusEtapa.Concluido,
+    in_progress: StatusEtapa.EmAndamento,
+    pending: StatusEtapa.Pendente,
+  };
+
+  // Calculate progress stats (using mapped status keys)
+  console.log("Stages received:", stages); // Log para verificar os dados recebidos
   const progressStats = useMemo(() => {
-    const completed = stages.filter((s) => s.status === "completed").length;
-    const inProgress = stages.filter((s) => s.status === "in_progress").length;
-    const skipped = stages.filter((s) => s.status === "skipped").length;
+    const mapped = stages.map((s) => {
+      const status = statusMapping[(s as any).status] ?? StatusEtapa.Pendente;
+      console.log("Mapped stage status:", status); // Log para verificar o status mapeado
+      return status;
+    });
+
+    const completed = mapped.filter(
+      (st) => st === StatusEtapa.Concluido
+    ).length;
+    const inProgress = mapped.filter(
+      (st) => st === StatusEtapa.EmAndamento
+    ).length;
+    const skipped = mapped.filter((st) => st === StatusEtapa.Pulado).length;
     const total = stages.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    console.log("Progress stats:", {
+      completed,
+      inProgress,
+      skipped,
+      total,
+      percentage,
+    }); // Log para verificar os cálculos de progresso
+
     return { completed, inProgress, skipped, total, percentage };
   }, [stages]);
 
-  // Find current stage index
+  // Find current stage index (use mapped status)
   const currentStageIndex = useMemo(() => {
-    const inProgressIdx = stages.findIndex((s) => s.status === "in_progress");
+    const inProgressIdx = stages.findIndex(
+      (s) =>
+        ((s as any).status ?? StatusEtapa.Pendente) === StatusEtapa.EmAndamento
+    );
     if (inProgressIdx >= 0) return inProgressIdx;
-    const pendingIdx = stages.findIndex((s) => s.status === "pending");
+    const pendingIdx = stages.findIndex(
+      (s) =>
+        ((s as any).status ?? StatusEtapa.Pendente) === StatusEtapa.Pendente
+    );
     if (pendingIdx >= 0) return pendingIdx;
     return stages.length - 1;
   }, [stages]);
@@ -342,13 +379,16 @@ export function HorizontalTimeline({
 
   const openEditDialog = (stage: TreatmentStage) => {
     setSelectedStage(stage);
+    const rawDate = (stage as any).dataAgendada ?? "";
+    const dateForInput =
+      rawDate && rawDate.includes("T") ? rawDate.split("T")[0] : rawDate;
     setEditForm({
-      status: stage.status,
-      notes: stage.notes || "",
+      status: (stage as any).status ?? StatusEtapa.Pendente,
+      notes: (stage as any).observacoes ?? "",
       diagnosis: "",
-      attachments: stage.attachments || [],
-      scheduledDate: stage.scheduledDate || "",
-      completedChecklist: stage.completedChecklist || [],
+      attachments: (stage as any).anexos ?? [],
+      scheduledDate: dateForInput ?? "",
+      completedChecklist: (stage as any).checklistConcluido ?? [],
     });
     setIsEditing(true);
   };
@@ -357,11 +397,11 @@ export function HorizontalTimeline({
     if (selectedStage && onStageUpdate) {
       onStageUpdate(selectedStage.id, {
         status: editForm.status,
-        notes: editForm.notes,
-        attachments: editForm.attachments,
-        scheduledDate: editForm.scheduledDate || undefined,
-        completedChecklist: editForm.completedChecklist,
-      });
+        observacoes: editForm.notes,
+        anexos: editForm.attachments,
+        dataAgendada: editForm.scheduledDate || undefined,
+        checklistConcluido: editForm.completedChecklist,
+      } as any);
     }
     setIsEditing(false);
     setSelectedStage(null);
@@ -579,12 +619,14 @@ export function HorizontalTimeline({
               }}
             >
               {stages.map((stage, index) => {
-                const config = statusConfig[stage.status];
-                const StatusIcon = config.icon;
-                const isCurrent = stage.status === "in_progress";
-                const isCompleted = stage.status === "completed";
-                const isPending = stage.status === "pending";
-                const isSkipped = stage.status === "skipped";
+                const key = (stage as any).status ?? StatusEtapa.Pendente;
+                const defaultConfig = statusConfig[StatusEtapa.Pendente as any];
+                const config = (statusConfig as any)[key] ?? defaultConfig;
+                const StatusIcon = (config && config.icon) || Clock;
+                const isCurrent = key === StatusEtapa.EmAndamento;
+                const isCompleted = key === StatusEtapa.Concluido;
+                const isPending = key === StatusEtapa.Pendente;
+                const isSkipped = key === StatusEtapa.Pulado;
 
                 return (
                   <div
@@ -658,7 +700,9 @@ export function HorizontalTimeline({
                               "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
                           )}
                         >
-                          {stage.orderIndex}/{stages.length}
+                          {(stage as any).OrdemExibicao ??
+                            (stage as any).ordemExibicao}
+                          /{stages.length}
                         </span>
                         <Badge
                           variant={config.badgeVariant}
@@ -676,7 +720,7 @@ export function HorizontalTimeline({
 
                       {/* Stage Name */}
                       <h4 className="font-bold text-sm mb-3 line-clamp-2 leading-snug">
-                        {stage.name}
+                        {(stage as any).Nome || (stage as any).nome}
                       </h4>
 
                       {/* Date Info */}
@@ -694,23 +738,27 @@ export function HorizontalTimeline({
                             Agendado:
                           </span>
                           <span className="font-medium">
-                            {formatDate(stage.scheduledDate)}
+                            {formatDate((stage as any).dataAgendada)}
                           </span>
                         </div>
-                        {stage.dateCompleted && (
+                        {(stage as any).dataConclusao && (
                           <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
                             <Check className="h-3.5 w-3.5" />
                             <span>Concluído:</span>
                             <span className="font-medium">
-                              {formatDate(stage.dateCompleted)}
+                              {formatDate((stage as any).dataConclusao)}
                             </span>
                           </div>
                         )}
                       </div>
 
                       {/* Checklist indicator */}
-                      {stage.checklistItems &&
-                        stage.checklistItems.length > 0 && (
+                      {((stage as any).ItensChecklist ||
+                        (stage as any).itensChecklist) &&
+                        (
+                          (stage as any).ItensChecklist ||
+                          (stage as any).itensChecklist
+                        ).length > 0 && (
                           <div className="mt-3 pt-3 border-t border-border/50">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -719,23 +767,38 @@ export function HorizontalTimeline({
                               </div>
                               <Badge
                                 variant={
-                                  (stage.completedChecklist?.length || 0) ===
-                                  stage.checklistItems.length
+                                  (((stage as any).checklistConcluido ?? [])
+                                    ?.length || 0) ===
+                                  (
+                                    (stage as any).ItensChecklist ||
+                                    (stage as any).itensChecklist
+                                  ).length
                                     ? "default"
                                     : "secondary"
                                 }
                                 className="text-[10px] px-1.5 py-0"
                               >
-                                {stage.completedChecklist?.length || 0}/
-                                {stage.checklistItems.length}
+                                {((stage as any).checklistConcluido ?? [])
+                                  ?.length || 0}
+                                /
+                                {
+                                  (
+                                    (stage as any).ItensChecklist ||
+                                    (stage as any).itensChecklist
+                                  ).length
+                                }
                               </Badge>
                             </div>
                             <div className="space-y-1">
-                              {stage.checklistItems
+                              {(
+                                (stage as any).ItensChecklist ||
+                                (stage as any).itensChecklist
+                              )
                                 .slice(0, 3)
                                 .map((item, idx) => {
-                                  const isChecked =
-                                    stage.completedChecklist?.includes(item);
+                                  const isChecked = (
+                                    (stage as any).checklistConcluido ?? []
+                                  )?.includes(item);
                                   return (
                                     <div
                                       key={idx}
@@ -758,9 +821,17 @@ export function HorizontalTimeline({
                                     </div>
                                   );
                                 })}
-                              {stage.checklistItems.length > 3 && (
+                              {(
+                                (stage as any).ItensChecklist ||
+                                (stage as any).itensChecklist
+                              ).length > 3 && (
                                 <p className="text-[10px] text-muted-foreground pl-4">
-                                  +{stage.checklistItems.length - 3} mais...
+                                  +
+                                  {(
+                                    (stage as any).ItensChecklist ||
+                                    (stage as any).itensChecklist
+                                  ).length - 3}{" "}
+                                  mais...
                                 </p>
                               )}
                             </div>
@@ -768,21 +839,22 @@ export function HorizontalTimeline({
                         )}
 
                       {/* Notes preview */}
-                      {stage.notes && (
+                      {(stage as any).observacoes && (
                         <div className="mt-3 pt-3 border-t border-border/50">
                           <p className="text-xs text-muted-foreground line-clamp-2 italic">
-                            "{stage.notes}"
+                            "{(stage as any).observacoes}"
                           </p>
                         </div>
                       )}
 
                       {/* Attachments indicator */}
-                      {stage.attachments && stage.attachments.length > 0 && (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                          <FileText className="h-3 w-3" />
-                          <span>{stage.attachments.length} anexo(s)</span>
-                        </div>
-                      )}
+                      {(stage as any).anexos &&
+                        (stage as any).anexos.length > 0 && (
+                          <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                            <FileText className="h-3 w-3" />
+                            <span>{(stage as any).anexos.length} anexo(s)</span>
+                          </div>
+                        )}
                     </div>
                   </div>
                 );
@@ -793,7 +865,13 @@ export function HorizontalTimeline({
       </CardContent>
 
       {/* Stage Edit Dialog */}
-      <Dialog open={isEditing} onOpenChange={() => setIsEditing(false)}>
+      <Dialog
+        open={isEditing && selectedStage !== null}
+        onOpenChange={() => {
+          setIsEditing(false);
+          setSelectedStage(null);
+        }}
+      >
         <DialogContent
           className="max-w-lg"
           onCloseAutoFocus={(e) => e.preventDefault()}
@@ -801,204 +879,231 @@ export function HorizontalTimeline({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Editar Etapa: {selectedStage?.name}
+              {`Editar Etapa: ${
+                (selectedStage as any)?.Nome ||
+                (selectedStage as any)?.nome ||
+                ""
+              }`}
             </DialogTitle>
           </DialogHeader>
-          {selectedStage && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>
-                  Etapa {selectedStage.orderIndex} de {stages.length}
-                </span>
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
+                Etapa{" "}
+                {(selectedStage as any)?.OrdemExibicao ??
+                  (selectedStage as any)?.ordemExibicao ??
+                  "-"}{" "}
+                de {stages.length}
+              </span>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Status</Label>
-                  <Select
-                    value={editForm.status}
-                    onValueChange={(value: TreatmentStage["status"]) =>
-                      setEditForm((prev) => ({ ...prev, status: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="in_progress">Em Andamento</SelectItem>
-                      <SelectItem value="completed">Concluído</SelectItem>
-                      <SelectItem value="skipped">Pulado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Data Agendada</Label>
-                  <Input
-                    type="date"
-                    value={editForm.scheduledDate}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        scheduledDate: e.target.value,
-                      }))
-                    }
-                    disabled={editForm.status === "completed"}
-                  />
-                  {editForm.status === "completed" && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Etapas concluídas não podem ter a data alterada
-                    </p>
-                  )}
-                </div>
-              </div>
-
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Observações</Label>
-                <Textarea
-                  placeholder="Adicione observações sobre esta etapa..."
-                  value={editForm.notes}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({ ...prev, notes: e.target.value }))
+                <Label>Status</Label>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(value: TreatmentStage["status"]) =>
+                    setEditForm((prev) => ({ ...prev, status: value }))
                   }
-                  rows={3}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={StatusEtapa.Pendente}>
+                      Pendente
+                    </SelectItem>
+                    <SelectItem value={StatusEtapa.EmAndamento}>
+                      Em Andamento
+                    </SelectItem>
+                    <SelectItem value={StatusEtapa.Concluido}>
+                      Concluído
+                    </SelectItem>
+                    <SelectItem value={StatusEtapa.Pulado}>Pulado</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              {/* Checklist Section */}
-              {selectedStage?.checklistItems &&
-                selectedStage.checklistItems.length > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <Label className="flex items-center gap-2">
-                        <ListChecks className="h-4 w-4" />
-                        Checklist da Etapa
-                      </Label>
-                      <Badge
-                        variant={
-                          editForm.completedChecklist.length ===
-                          selectedStage.checklistItems.length
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {editForm.completedChecklist.length}/
-                        {selectedStage.checklistItems.length} concluídos
-                      </Badge>
-                    </div>
-                    <div className="space-y-2 p-3 bg-muted/50 rounded-lg border">
-                      {selectedStage.checklistItems.map((item, idx) => {
-                        const isChecked =
-                          editForm.completedChecklist.includes(item);
-                        return (
-                          <div
-                            key={idx}
-                            className={cn(
-                              "flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer hover:bg-background",
-                              isChecked &&
-                                "bg-emerald-50 dark:bg-emerald-950/30"
-                            )}
-                            onClick={() => toggleChecklistItem(item)}
-                          >
-                            <Checkbox
-                              id={`checklist-${idx}`}
-                              checked={isChecked}
-                              onCheckedChange={() => toggleChecklistItem(item)}
-                            />
-                            <label
-                              htmlFor={`checklist-${idx}`}
-                              className={cn(
-                                "flex-1 text-sm cursor-pointer select-none",
-                                isChecked &&
-                                  "line-through text-muted-foreground"
-                              )}
-                            >
-                              {item}
-                            </label>
-                            {isChecked && (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {editForm.completedChecklist.length ===
-                      selectedStage.checklistItems.length && (
-                      <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        Todos os itens foram concluídos!
-                      </p>
-                    )}
-                  </div>
-                )}
-
               <div>
-                <Label>Diagnóstico</Label>
-                <Textarea
-                  placeholder="Diagnóstico ou achados clínicos..."
-                  value={editForm.diagnosis}
+                <Label>Data Agendada</Label>
+                <Input
+                  type="date"
+                  value={editForm.scheduledDate}
                   onChange={(e) =>
                     setEditForm((prev) => ({
                       ...prev,
-                      diagnosis: e.target.value,
+                      scheduledDate: e.target.value,
                     }))
                   }
-                  rows={2}
+                  disabled={editForm.status === StatusEtapa.Concluido}
                 />
-              </div>
-
-              <div>
-                <Label>Anexos</Label>
-                <div className="mt-2">
-                  <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                    <Upload className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Clique para adicionar arquivos
-                    </span>
-                    <input
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
-                  </label>
-                </div>
-                {editForm.attachments.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {editForm.attachments.map((file, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="secondary"
-                        className="gap-1 pr-1"
-                      >
-                        <FileText className="h-3 w-3" />
-                        {file}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setAttachmentToDelete({ index: idx, name: file })
-                          }
-                          className="ml-1 p-0.5 rounded hover:bg-destructive/20 text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
+                {editForm.status === StatusEtapa.Concluido && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Etapas concluídas não podem ter a data alterada
+                  </p>
                 )}
               </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Alterações
-                </Button>
-              </DialogFooter>
             </div>
-          )}
+
+            <div>
+              <Label>Observações</Label>
+              <Textarea
+                placeholder="Adicione observações sobre esta etapa..."
+                value={editForm.notes}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, notes: e.target.value }))
+                }
+                rows={3}
+              />
+            </div>
+
+            {/* Checklist Section */}
+            {(
+              (selectedStage as any)?.ItensChecklist ??
+              (selectedStage as any)?.itensChecklist ??
+              []
+            ).length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="flex items-center gap-2">
+                    <ListChecks className="h-4 w-4" />
+                    Checklist da Etapa
+                  </Label>
+                  <Badge
+                    variant={
+                      editForm.completedChecklist.length ===
+                      (
+                        (selectedStage as any)?.ItensChecklist ??
+                        (selectedStage as any)?.itensChecklist ??
+                        []
+                      ).length
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
+                    {editForm.completedChecklist.length}/{" "}
+                    {
+                      (
+                        (selectedStage as any)?.ItensChecklist ??
+                        (selectedStage as any)?.itensChecklist ??
+                        []
+                      ).length
+                    }{" "}
+                    concluídos
+                  </Badge>
+                </div>
+                <div className="space-y-2 p-3 bg-muted/50 rounded-lg border">
+                  {(
+                    (selectedStage as any)?.ItensChecklist ??
+                    (selectedStage as any)?.itensChecklist ??
+                    []
+                  ).map((item, idx) => {
+                    const isChecked =
+                      editForm.completedChecklist.includes(item);
+                    return (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer hover:bg-background",
+                          isChecked && "bg-emerald-50 dark:bg-emerald-950/30"
+                        )}
+                        onClick={() => toggleChecklistItem(item)}
+                      >
+                        <Checkbox
+                          id={`checklist-${idx}`}
+                          checked={isChecked}
+                          onCheckedChange={() => toggleChecklistItem(item)}
+                        />
+                        <label
+                          htmlFor={`checklist-${idx}`}
+                          className={cn(
+                            "text-sm font-medium text-gray-900 dark:text-gray-100"
+                          )}
+                        >
+                          {item.label}
+                        </label>
+                        {isChecked && (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {editForm.completedChecklist.length ===
+                  (
+                    (selectedStage as any)?.ItensChecklist ??
+                    (selectedStage as any)?.itensChecklist ??
+                    []
+                  ).length && (
+                  <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+                    <Check className="h-3 w-3" />
+                    Todos os itens foram concluídos!
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div>
+              <Label>Diagnóstico</Label>
+              <Textarea
+                placeholder="Diagnóstico ou achados clínicos..."
+                value={editForm.diagnosis}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    diagnosis: e.target.value,
+                  }))
+                }
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <Label>Anexos</Label>
+              <div className="mt-2">
+                <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                  <Upload className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    Clique para adicionar arquivos
+                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </div>
+              {editForm.attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {editForm.attachments.map((file, idx) => (
+                    <Badge key={idx} variant="secondary" className="gap-1 pr-1">
+                      <FileText className="h-3 w-3" />
+                      {file}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAttachmentToDelete({ index: idx, name: file })
+                        }
+                        className="ml-1 p-0.5 rounded hover:bg-destructive/20 text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSave}>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Alterações
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

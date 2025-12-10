@@ -79,8 +79,17 @@ export const ApiTreatmentStageService: ITreatmentStageService = {
     return Promise.resolve([]);
   },
 
-  async getById(id: string): Promise<TreatmentStage | undefined> {
+  async getById(
+    id: string,
+    atendimentoId?: string
+  ): Promise<TreatmentStage | undefined> {
     try {
+      if (atendimentoId) {
+        return await apiClient.get<TreatmentStage>(
+          `/atendimentos/${atendimentoId}/etapas/${id}`
+        );
+      }
+      // Fallback (may 404) - prefer callers to provide atendimentoId
       return await apiClient.get<TreatmentStage>(`/atendimentos/etapas/${id}`);
     } catch (error: any) {
       if (error.status === 404) return undefined;
@@ -89,20 +98,44 @@ export const ApiTreatmentStageService: ITreatmentStageService = {
   },
 
   async create(data: Omit<TreatmentStage, "id">): Promise<TreatmentStage> {
+    // Backend uses Portuguese field `atendimentoId` on EtapaAtendimento.
+    const atendimentoId =
+      (data as any).atendimentoId ?? (data as any).treatmentId;
+    if (!atendimentoId) {
+      return Promise.reject({
+        status: 400,
+        message: "atendimentoId is required to create a treatment stage",
+      });
+    }
     return apiClient.post<TreatmentStage>(
-      `/atendimentos/${data.treatmentId}/etapas`,
+      `/atendimentos/${atendimentoId}/etapas`,
       data
     );
   },
 
   async update(
     id: string,
-    data: Partial<TreatmentStage>
+    data: Partial<TreatmentStage>,
+    atendimentoId?: string
   ): Promise<TreatmentStage> {
-    return apiClient.put<TreatmentStage>(`/atendimentos/etapas/${id}`, data);
+    const aid =
+      atendimentoId ?? (data as any).atendimentoId ?? (data as any).treatmentId;
+    if (aid) {
+      return apiClient.put<TreatmentStage>(
+        `/atendimentos/${aid}/etapas/${id}`,
+        data as any
+      );
+    }
+    return apiClient.put<TreatmentStage>(
+      `/atendimentos/etapas/${id}`,
+      data as any
+    );
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, atendimentoId?: string): Promise<void> {
+    if (atendimentoId) {
+      return apiClient.delete(`/atendimentos/${atendimentoId}/etapas/${id}`);
+    }
     return apiClient.delete(`/atendimentos/etapas/${id}`);
   },
 
@@ -115,8 +148,18 @@ export const ApiTreatmentStageService: ITreatmentStageService = {
   async updateStatus(
     id: string,
     status: TreatmentStage["status"],
-    dateCompleted?: string
+    dateCompleted?: string,
+    atendimentoId?: string
   ): Promise<TreatmentStage> {
+    if (atendimentoId) {
+      return apiClient.patch<TreatmentStage>(
+        `/atendimentos/${atendimentoId}/etapas/${id}/status`,
+        {
+          status,
+          dataConclusao: dateCompleted,
+        }
+      );
+    }
     return apiClient.patch<TreatmentStage>(
       `/atendimentos/etapas/${id}/status`,
       {
@@ -128,8 +171,17 @@ export const ApiTreatmentStageService: ITreatmentStageService = {
 
   async updateChecklist(
     id: string,
-    completedItems: string[]
+    completedItems: string[],
+    atendimentoId?: string
   ): Promise<TreatmentStage> {
+    if (atendimentoId) {
+      return apiClient.patch<TreatmentStage>(
+        `/atendimentos/${atendimentoId}/etapas/${id}/checklist`,
+        {
+          itensConcluidos: completedItems,
+        }
+      );
+    }
     return apiClient.patch<TreatmentStage>(
       `/atendimentos/etapas/${id}/checklist`,
       {
@@ -138,7 +190,19 @@ export const ApiTreatmentStageService: ITreatmentStageService = {
     );
   },
 
-  async addAttachment(id: string, attachment: string): Promise<TreatmentStage> {
+  async addAttachment(
+    id: string,
+    attachment: string,
+    atendimentoId?: string
+  ): Promise<TreatmentStage> {
+    if (atendimentoId) {
+      return apiClient.post<TreatmentStage>(
+        `/atendimentos/${atendimentoId}/etapas/${id}/anexos`,
+        {
+          anexo: attachment,
+        }
+      );
+    }
     return apiClient.post<TreatmentStage>(`/atendimentos/etapas/${id}/anexos`, {
       anexo: attachment,
     });
@@ -146,8 +210,16 @@ export const ApiTreatmentStageService: ITreatmentStageService = {
 
   async removeAttachment(
     id: string,
-    attachment: string
+    attachment: string,
+    atendimentoId?: string
   ): Promise<TreatmentStage> {
+    if (atendimentoId) {
+      return apiClient.delete<TreatmentStage>(
+        `/atendimentos/${atendimentoId}/etapas/${id}/anexos?anexo=${encodeURIComponent(
+          attachment
+        )}`
+      );
+    }
     return apiClient.delete<TreatmentStage>(
       `/atendimentos/etapas/${id}/anexos/${encodeURIComponent(attachment)}`
     );

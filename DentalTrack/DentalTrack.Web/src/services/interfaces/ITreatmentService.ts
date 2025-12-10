@@ -44,12 +44,21 @@ export interface ITreatmentStageService extends IBaseService<TreatmentStage> {
   getByTreatmentId(treatmentId: string): Promise<TreatmentStage[]>;
 
   /**
+   * Busca etapa por id — alguns endpoints no backend requerem `atendimentoId` no caminho.
+   */
+  getById(
+    id: string,
+    atendimentoId?: string
+  ): Promise<TreatmentStage | undefined>;
+
+  /**
    * Atualiza status de uma etapa
    */
   updateStatus(
     id: string,
     status: TreatmentStage["status"],
-    dateCompleted?: string
+    dateCompleted?: string,
+    atendimentoId?: string
   ): Promise<TreatmentStage>;
 
   /**
@@ -57,18 +66,27 @@ export interface ITreatmentStageService extends IBaseService<TreatmentStage> {
    */
   updateChecklist(
     id: string,
-    completedItems: string[]
+    completedItems: string[],
+    atendimentoId?: string
   ): Promise<TreatmentStage>;
 
   /**
    * Adiciona anexo a uma etapa
    */
-  addAttachment(id: string, attachment: string): Promise<TreatmentStage>;
+  addAttachment(
+    id: string,
+    attachment: string,
+    atendimentoId?: string
+  ): Promise<TreatmentStage>;
 
   /**
    * Remove anexo de uma etapa
    */
-  removeAttachment(id: string, attachment: string): Promise<TreatmentStage>;
+  removeAttachment(
+    id: string,
+    attachment: string,
+    atendimentoId?: string
+  ): Promise<TreatmentStage>;
 }
 
 export interface TreatmentFilterOptions extends FilterOptions {

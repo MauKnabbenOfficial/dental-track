@@ -7,22 +7,28 @@ import {
   useCallback,
 } from "react";
 import { toast } from "sonner";
+import { useServices } from "@/services";
+import { TipoResponsavel, StatusLancamento } from "@/types/backendEnums";
 import {
+  UsuarioDto,
+  PacienteDto,
+  AtendimentoDto,
+  EtapaAtendimentoDto,
+  LancamentoFinanceiroDto,
   User,
   Patient,
-  ProcedureTemplate,
-  ProcedureTemplateStage,
   Treatment,
   TreatmentStage,
   FinancialRecord,
-} from "@/data/mockData";
-import { useServices } from "@/services";
+  ProcedureTemplate,
+  ProcedureTemplateStage,
+} from "@/types/backendDtos";
 
 // Extended FinancialRecord with new fields
 export interface ExtendedFinancialRecord extends FinancialRecord {
   paymentDate?: string;
-  status: "pending" | "paid" | "cancelled";
-  responsibleType: "patient" | "clinic";
+  status: StatusLancamento;
+  responsibleType: TipoResponsavel;
   patientId?: string;
   createdBy: string;
 }
@@ -30,10 +36,10 @@ export interface ExtendedFinancialRecord extends FinancialRecord {
 // Stage Template for reusable stages
 export interface StageTemplate {
   id: string;
-  name: string;
-  description: string;
-  defaultDuration: number;
-  checklistItems: string[];
+  nome: string;
+  descricao: string;
+  duracaoPadraoMinutos: number;
+  itensChecklist: string[];
 }
 
 interface DataContextType {
@@ -63,7 +69,9 @@ interface DataContextType {
 
   // Procedure Template Stages
   procedureTemplateStages: ProcedureTemplateStage[];
-  addProcedureTemplateStage: (stage: ProcedureTemplateStage) => void;
+  addProcedureTemplateStage: (
+    stage: ProcedureTemplateStage
+  ) => Promise<ProcedureTemplateStage>;
   updateProcedureTemplateStage: (
     id: string,
     stage: Partial<ProcedureTemplateStage>
@@ -121,10 +129,10 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 const initialStageTemplates: StageTemplate[] = [
   {
     id: "st1",
-    name: "Anestesia",
-    description: "Aplicação de anestesia local",
-    defaultDuration: 15,
-    checklistItems: [
+    nome: "Anestesia",
+    descricao: "Aplicação de anestesia local",
+    duracaoPadraoMinutos: 15,
+    itensChecklist: [
       "Verificar alergias",
       "Preparar material",
       "Aplicar anestésico",
@@ -132,17 +140,17 @@ const initialStageTemplates: StageTemplate[] = [
   },
   {
     id: "st2",
-    name: "Consulta Inicial",
-    description: "Primeira avaliação do paciente",
-    defaultDuration: 30,
-    checklistItems: ["Anamnese", "Exame clínico", "Radiografias iniciais"],
+    nome: "Consulta Inicial",
+    descricao: "Primeira avaliação do paciente",
+    duracaoPadraoMinutos: 30,
+    itensChecklist: ["Anamnese", "Exame clínico", "Radiografias iniciais"],
   },
   {
     id: "st3",
-    name: "Cirurgia",
-    description: "Procedimento cirúrgico",
-    defaultDuration: 90,
-    checklistItems: [
+    nome: "Cirurgia",
+    descricao: "Procedimento cirúrgico",
+    duracaoPadraoMinutos: 90,
+    itensChecklist: [
       "Checklist pré-operatório",
       "Equipamentos",
       "Pós-operatório",
@@ -150,24 +158,24 @@ const initialStageTemplates: StageTemplate[] = [
   },
   {
     id: "st4",
-    name: "Retorno",
-    description: "Consulta de acompanhamento",
-    defaultDuration: 20,
-    checklistItems: ["Avaliação cicatrização", "Orientações"],
+    nome: "Retorno",
+    descricao: "Consulta de acompanhamento",
+    duracaoPadraoMinutos: 20,
+    itensChecklist: ["Avaliação cicatrização", "Orientações"],
   },
   {
     id: "st5",
-    name: "Moldagem",
-    description: "Tomada de moldes",
-    defaultDuration: 30,
-    checklistItems: ["Preparar material", "Moldagem", "Enviar laboratório"],
+    nome: "Moldagem",
+    descricao: "Tomada de moldes",
+    duracaoPadraoMinutos: 30,
+    itensChecklist: ["Preparar material", "Moldagem", "Enviar laboratório"],
   },
   {
     id: "st6",
-    name: "Raio-X",
-    description: "Exames radiográficos",
-    defaultDuration: 15,
-    checklistItems: ["Posicionamento", "Tomada radiográfica", "Análise"],
+    nome: "Raio-X",
+    descricao: "Exames radiográficos",
+    duracaoPadraoMinutos: 15,
+    itensChecklist: ["Posicionamento", "Tomada radiográfica", "Análise"],
   },
 ];
 
@@ -178,6 +186,7 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   const patientService = services.patientService;
   const procedureTemplateService = services.procedureTemplateService;
   const procedureTemplateStageService = services.procedureTemplateStageService;
+  const stageTemplateService = services.stageTemplateService;
   const treatmentService = services.treatmentService;
   const treatmentStageService = services.treatmentStageService;
   const financialService = services.financialService;
@@ -211,6 +220,7 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
         patientsData,
         templatesData,
         templateStagesData,
+        stageTemplatesData,
         treatmentsData,
         treatmentStagesData,
         financialData,
@@ -219,10 +229,15 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
         patientService.getAll().catch(() => []),
         procedureTemplateService.getAll().catch(() => []),
         procedureTemplateStageService.getAll().catch(() => []),
+        stageTemplateService.getAll().catch(() => []),
         treatmentService.getAll().catch(() => []),
         treatmentStageService.getAll().catch(() => []),
         financialService.getAll().catch(() => []),
       ]);
+
+      // Adicionar logs para depuração
+      console.log("Templates Data:", templatesData);
+      console.log("Template Stages Data:", templateStagesData);
 
       setUsers(usersData);
       setPatients(patientsData);
@@ -238,7 +253,8 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
       const hasModeloProcedimentoId =
         Array.isArray(resolvedProcedureTemplateStages) &&
         resolvedProcedureTemplateStages.length > 0 &&
-        "modeloProcedimentoId" in resolvedProcedureTemplateStages[0];
+        ("ModeloProcedimentoId" in resolvedProcedureTemplateStages[0] ||
+          "modeloProcedimentoId" in resolvedProcedureTemplateStages[0]);
 
       if (!hasModeloProcedimentoId) {
         // Fallback: fetch stages per template (calls /modelosprocedimentos/{id}/etapas)
@@ -248,6 +264,10 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
           );
 
           const perTemplateResults = await Promise.all(perTemplatePromises);
+
+          // Adicionar logs para depuração
+          console.log("Resultados por modelo:", perTemplateResults);
+
           resolvedProcedureTemplateStages = perTemplateResults.flat();
         } catch (e) {
           // if everything fails, keep the original templateStagesData (might be empty)
@@ -270,13 +290,42 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
       setProcedureTemplateStages(
         resolvedProcedureTemplateStages as ProcedureTemplateStage[]
       );
-      setTreatments(treatmentsData);
-      setTreatmentStages(treatmentStagesData);
+      // set stage templates (these are reusable step templates)
+      setStageTemplates(stageTemplatesData as any[]);
+      // Do not normalize API shapes here — keep backend property names intact.
+      setTreatments(treatmentsData as any[]);
+
+      // The API does not provide a global "get all stages" endpoint —
+      // `treatmentStageService.getAll()` is a noop for the real API and
+      // returns an empty array. To ensure the frontend has the stages
+      // for each atendimento, if `treatmentStagesData` is empty, fetch
+      // stages per treatment using `/atendimentos/{id}/etapas`.
+      let resolvedTreatmentStages: any[] = treatmentStagesData as any[];
+      if (
+        (!Array.isArray(resolvedTreatmentStages) ||
+          resolvedTreatmentStages.length === 0) &&
+        Array.isArray(treatmentsData) &&
+        treatmentsData.length > 0
+      ) {
+        try {
+          const perTreatmentPromises = (treatmentsData || []).map((t: any) =>
+            treatmentStageService.getByTreatmentId(t.id).catch(() => [])
+          );
+          const perTreatmentResults = await Promise.all(perTreatmentPromises);
+          resolvedTreatmentStages = perTreatmentResults.flat();
+        } catch (e) {
+          // fallback to whatever was returned initially (possibly empty)
+          resolvedTreatmentStages = treatmentStagesData as any[];
+        }
+      }
+
+      setTreatmentStages(resolvedTreatmentStages as TreatmentStage[]);
       setFinancialRecords(
         financialData.map((r) => ({
           ...r,
-          status: (r as any).status || "paid",
-          responsibleType: (r as any).responsibleType || "patient",
+          status: (r as any).status || StatusLancamento.Pago,
+          responsibleType:
+            (r as any).responsibleType || TipoResponsavel.Paciente,
           createdBy: (r as any).createdBy || "",
         })) as ExtendedFinancialRecord[]
       );
@@ -413,11 +462,17 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   const deleteProcedureTemplate = (id: string) => {
     const oldTemplate = procedureTemplates.find((t) => t.id === id);
     const oldStages = procedureTemplateStages.filter(
-      (s) => (s as any).modeloProcedimentoId === id
+      (s) =>
+        (s as any).ModeloProcedimentoId === id ||
+        (s as any).modeloProcedimentoId === id
     );
     setProcedureTemplates((prev) => prev.filter((t) => t.id !== id));
     setProcedureTemplateStages((prev) =>
-      prev.filter((s) => (s as any).modeloProcedimentoId !== id)
+      prev.filter(
+        (s) =>
+          (s as any).ModeloProcedimentoId !== id &&
+          (s as any).modeloProcedimentoId !== id
+      )
     );
     procedureTemplateService.delete(id).catch((error) => {
       console.error("Erro ao excluir modelo:", error);
@@ -429,15 +484,30 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   };
 
   // Procedure Template Stages CRUD
-  const addProcedureTemplateStage = (stage: ProcedureTemplateStage) => {
+  const addProcedureTemplateStage = (
+    stage: ProcedureTemplateStage
+  ): Promise<ProcedureTemplateStage> => {
+    // Otimista: adiciona a etapa temporária e em seguida chama o backend.
     setProcedureTemplateStages((prev) => [...prev, stage]);
-    procedureTemplateStageService.create(stage).catch((error) => {
-      console.error("Erro ao criar etapa:", error);
-      toast.error("Erro ao criar etapa de procedimento");
-      setProcedureTemplateStages((prev) =>
-        prev.filter((s) => s.id !== stage.id)
-      );
-    });
+
+    return procedureTemplateStageService
+      .create(stage)
+      .then((created) => {
+        // Substitui a etapa temporária (id gerado no cliente) pela versão retornada pelo servidor
+        setProcedureTemplateStages((prev) =>
+          prev.map((s) => (s.id === stage.id ? created : s))
+        );
+        return created;
+      })
+      .catch((error) => {
+        console.error("Erro ao criar etapa:", error);
+        toast.error("Erro ao criar etapa de procedimento");
+        // Remove a etapa temporária caso a criação falhe
+        setProcedureTemplateStages((prev) =>
+          prev.filter((s) => s.id !== stage.id)
+        );
+        throw error;
+      });
   };
   const updateProcedureTemplateStage = (
     id: string,
@@ -447,23 +517,33 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
     setProcedureTemplateStages((prev) =>
       prev.map((s) => (s.id === id ? { ...s, ...data } : s))
     );
-    procedureTemplateStageService.update(id, data).catch((error) => {
-      console.error("Erro ao atualizar etapa:", error);
-      toast.error("Erro ao atualizar etapa");
-      if (oldStage)
-        setProcedureTemplateStages((prev) =>
-          prev.map((s) => (s.id === id ? oldStage : s))
-        );
-    });
+    const modeloProcedimentoId =
+      (oldStage as any)?.ModeloProcedimentoId ??
+      (oldStage as any)?.modeloProcedimentoId;
+    procedureTemplateStageService
+      .update(id, data, modeloProcedimentoId)
+      .catch((error) => {
+        console.error("Erro ao atualizar etapa:", error);
+        toast.error("Erro ao atualizar etapa");
+        if (oldStage)
+          setProcedureTemplateStages((prev) =>
+            prev.map((s) => (s.id === id ? oldStage : s))
+          );
+      });
   };
   const deleteProcedureTemplateStage = (id: string) => {
     const oldStage = procedureTemplateStages.find((s) => s.id === id);
     setProcedureTemplateStages((prev) => prev.filter((s) => s.id !== id));
-    procedureTemplateStageService.delete(id).catch((error) => {
-      console.error("Erro ao excluir etapa:", error);
-      toast.error("Erro ao excluir etapa");
-      if (oldStage) setProcedureTemplateStages((prev) => [...prev, oldStage]);
-    });
+    const modeloProcedimentoId =
+      (oldStage as any)?.ModeloProcedimentoId ??
+      (oldStage as any)?.modeloProcedimentoId;
+    procedureTemplateStageService
+      .delete(id, modeloProcedimentoId)
+      .catch((error) => {
+        console.error("Erro ao excluir etapa:", error);
+        toast.error("Erro ao excluir etapa");
+        if (oldStage) setProcedureTemplateStages((prev) => [...prev, oldStage]);
+      });
   };
   const swapProcedureTemplateStageOrder = (
     stageId1: string,
@@ -473,25 +553,60 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
       const stage1 = prev.find((s) => s.id === stageId1) as any;
       const stage2 = prev.find((s) => s.id === stageId2) as any;
       if (!stage1 || !stage2) return prev;
-      const ordem1 = stage1.ordemExibicao;
-      const ordem2 = stage2.ordemExibicao;
+      const ordem1 = stage1.OrdemExibicao ?? stage1.ordemExibicao;
+      const ordem2 = stage2.OrdemExibicao ?? stage2.ordemExibicao;
       return prev.map((s) => {
-        if (s.id === stageId1) return { ...s, ordemExibicao: ordem2 } as any;
-        if (s.id === stageId2) return { ...s, ordemExibicao: ordem1 } as any;
+        if (s.id === stageId1)
+          return { ...s, OrdemExibicao: ordem2, ordemExibicao: ordem2 } as any;
+        if (s.id === stageId2)
+          return { ...s, OrdemExibicao: ordem1, ordemExibicao: ordem1 } as any;
         return s;
       });
     });
   };
 
   // Stage Templates CRUD (local only)
-  const addStageTemplate = (template: StageTemplate) =>
-    setStageTemplates((prev) => [...prev, template]);
-  const updateStageTemplate = (id: string, data: Partial<StageTemplate>) =>
+  const addStageTemplate = (template: StageTemplate) => {
+    // Send creation to backend and use server-generated ID.
+    stageTemplateService
+      .create({
+        Nome: template.nome,
+        Descricao: template.descricao,
+        DuracaoPadraoMinutos: template.duracaoPadraoMinutos,
+        ItensChecklist: template.itensChecklist,
+      })
+      .then((created) => {
+        // Add the created item returned by the server (contains real id)
+        setStageTemplates((prev) => [...prev, created]);
+      })
+      .catch((error) => {
+        console.error("Erro ao criar modelo de etapa:", error);
+        toast.error("Erro ao criar modelo de etapa");
+      });
+  };
+
+  const updateStageTemplate = (id: string, data: Partial<StageTemplate>) => {
+    const old = stageTemplates.find((s) => s.id === id);
     setStageTemplates((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...data } : t))
     );
-  const deleteStageTemplate = (id: string) =>
+    stageTemplateService.update(id, data).catch((error) => {
+      console.error("Erro ao atualizar modelo de etapa:", error);
+      toast.error("Erro ao atualizar modelo de etapa");
+      if (old)
+        setStageTemplates((prev) => prev.map((t) => (t.id === id ? old : t)));
+    });
+  };
+
+  const deleteStageTemplate = (id: string) => {
+    const old = stageTemplates.find((s) => s.id === id);
     setStageTemplates((prev) => prev.filter((t) => t.id !== id));
+    stageTemplateService.delete(id).catch((error) => {
+      console.error("Erro ao excluir modelo de etapa:", error);
+      toast.error("Erro ao excluir modelo de etapa");
+      if (old) setStageTemplates((prev) => [...prev, old]);
+    });
+  };
 
   // Treatments CRUD
   const addTreatment = (treatment: Treatment) => {
@@ -537,19 +652,26 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
 
   // Treatment Stages CRUD
   const addTreatmentStage = (stage: TreatmentStage) => {
-    setTreatmentStages((prev) => [...prev, stage]);
-    treatmentStageService.create(stage).catch((error) => {
-      console.error("Erro ao criar etapa de atendimento:", error);
-      toast.error("Erro ao criar etapa de atendimento");
-      setTreatmentStages((prev) => prev.filter((s) => s.id !== stage.id));
-    });
+    // Send stage to server (do not rely on client-generated id).
+    treatmentStageService
+      .create(stage)
+      .then((created) => {
+        setTreatmentStages((prev) => [...prev, created]);
+      })
+      .catch((error) => {
+        console.error("Erro ao criar etapa de atendimento:", error);
+        toast.error("Erro ao criar etapa de atendimento");
+      });
   };
   const updateTreatmentStage = (id: string, data: Partial<TreatmentStage>) => {
     const oldStage = treatmentStages.find((s) => s.id === id);
     setTreatmentStages((prev) =>
       prev.map((s) => (s.id === id ? { ...s, ...data } : s))
     );
-    treatmentStageService.update(id, data).catch((error) => {
+    // If we have the atendimentoId locally, pass it to the API service
+    const atendimentoId =
+      (oldStage as any)?.atendimentoId ?? (oldStage as any)?.treatmentId;
+    treatmentStageService.update(id, data, atendimentoId).catch((error) => {
       console.error("Erro ao atualizar etapa de atendimento:", error);
       toast.error("Erro ao atualizar etapa de atendimento");
       if (oldStage)
@@ -561,7 +683,9 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   const deleteTreatmentStage = (id: string) => {
     const oldStage = treatmentStages.find((s) => s.id === id);
     setTreatmentStages((prev) => prev.filter((s) => s.id !== id));
-    treatmentStageService.delete(id).catch((error) => {
+    const atendimentoId =
+      (oldStage as any)?.atendimentoId ?? (oldStage as any)?.treatmentId;
+    treatmentStageService.delete(id, atendimentoId).catch((error) => {
       console.error("Erro ao excluir etapa de atendimento:", error);
       toast.error("Erro ao excluir etapa de atendimento");
       if (oldStage) setTreatmentStages((prev) => [...prev, oldStage]);
@@ -611,17 +735,35 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
   const getTemplateById = (id: string) =>
     procedureTemplates.find((t) => t.id === id);
   const getUserById = (id: string) => users.find((u) => u.id === id);
-  const getStagesByTemplateId = (modeloProcedimentoId: string) =>
-    procedureTemplateStages
-      .filter((s: any) => s.modeloProcedimentoId === modeloProcedimentoId)
+  const getStagesByTemplateId = (modeloProcedimentoId: string) => {
+    const filteredStages = procedureTemplateStages
+      .filter(
+        (s: any) =>
+          (s.ModeloProcedimentoId &&
+            s.ModeloProcedimentoId === modeloProcedimentoId) ||
+          s.modeloProcedimentoId === modeloProcedimentoId
+      )
       .sort(
-        (a: any, b: any) => (a.ordemExibicao || 0) - (b.ordemExibicao || 0)
+        (a: any, b: any) =>
+          (a.OrdemExibicao ?? a.ordemExibicao ?? 0) -
+          (b.OrdemExibicao ?? b.ordemExibicao ?? 0)
       );
+
+    // Adicionar log para depuração
+    console.log(
+      `Etapas filtradas para ${modeloProcedimentoId}:`,
+      filteredStages
+    );
+
+    return filteredStages;
+  };
   const getStagesByTreatmentId = (treatmentId: string) =>
     treatmentStages
       .filter((s: any) => s.atendimentoId === treatmentId)
       .sort(
-        (a: any, b: any) => (a.ordemExibicao || 0) - (b.ordemExibicao || 0)
+        (a: any, b: any) =>
+          (a.OrdemExibicao ?? a.ordemExibicao ?? 0) -
+          (b.OrdemExibicao ?? b.ordemExibicao ?? 0)
       );
   const getTreatmentsByPatientId = (patientId: string) =>
     treatments.filter((t) => (t as any).pacienteId === patientId);

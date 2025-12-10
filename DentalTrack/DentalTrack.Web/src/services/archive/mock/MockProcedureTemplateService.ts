@@ -27,7 +27,7 @@ export const MockProcedureTemplateService: IProcedureTemplateService = {
     return templateStorage.getAll();
   },
 
-  async getById(id: string): Promise<ProcedureTemplate | undefined> {
+  async getById(id: string, modeloProcedimentoId?: string): Promise<ProcedureTemplate | undefined> {
     await simulateDelay();
     return templateStorage.getById(id);
   },
@@ -74,7 +74,7 @@ export const MockProcedureTemplateStageService: IProcedureTemplateStageService =
       return stageStorage.getAll();
     },
 
-    async getById(id: string): Promise<ProcedureTemplateStage | undefined> {
+    async getById(id: string, modeloProcedimentoId?: string): Promise<ProcedureTemplateStage | undefined> {
       await simulateDelay();
       return stageStorage.getById(id);
     },
@@ -88,13 +88,14 @@ export const MockProcedureTemplateStageService: IProcedureTemplateStageService =
 
     async update(
       id: string,
-      data: Partial<ProcedureTemplateStage>
+      data: Partial<ProcedureTemplateStage>,
+      modeloProcedimentoId?: string
     ): Promise<ProcedureTemplateStage> {
       await simulateDelay();
       return stageStorage.update(id, data);
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string, modeloProcedimentoId?: string): Promise<void> {
       await simulateDelay();
       stageStorage.delete(id);
     },

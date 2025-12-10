@@ -42,39 +42,44 @@ export default function StageTemplates() {
   );
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Form state
+  // Form state (use PascalCase for runtime; convert when calling DataContext)
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    defaultDuration: 0,
-    checklistItems: [] as string[],
+    Nome: "",
+    Descricao: "",
+    DuracaoPadraoMinutos: 0,
+    ItensChecklist: [] as string[],
   });
   const [newChecklistItem, setNewChecklistItem] = useState("");
 
   const filteredTemplates = stageTemplates.filter(
-    (t) =>
-      (t.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (t.description || "").toLowerCase().includes(search.toLowerCase())
+    (t: any) =>
+      (t.nome || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.descricao || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      description: "",
-      defaultDuration: 0,
-      checklistItems: [],
+      Nome: "",
+      Descricao: "",
+      DuracaoPadraoMinutos: 0,
+      ItensChecklist: [],
     });
     setNewChecklistItem("");
     setEditingTemplate(null);
   };
 
-  const openEditDialog = (template: StageTemplate) => {
+  const openEditDialog = (template: any) => {
     setEditingTemplate(template);
     setFormData({
-      name: template.name,
-      description: template.description,
-      defaultDuration: template.defaultDuration,
-      checklistItems: [...template.checklistItems],
+      Nome: (template as any).Nome || template.nome || "",
+      Descricao: (template as any).Descricao || template.descricao || "",
+      DuracaoPadraoMinutos:
+        (template as any).DuracaoPadraoMinutos ||
+        template.duracaoPadraoMinutos ||
+        0,
+      ItensChecklist: [
+        ...((template as any).ItensChecklist || template.itensChecklist || []),
+      ],
     });
     setIsFormOpen(true);
   };
@@ -83,13 +88,22 @@ export default function StageTemplates() {
     e.preventDefault();
 
     if (editingTemplate) {
-      updateStageTemplate(editingTemplate.id, formData);
+      // Convert PascalCase formData to DataContext expected camelCase shape
+      updateStageTemplate(editingTemplate.id, {
+        nome: (formData as any).Nome,
+        descricao: (formData as any).Descricao,
+        duracaoPadraoMinutos: (formData as any).DuracaoPadraoMinutos,
+        itensChecklist: (formData as any).ItensChecklist,
+      } as any);
       toast.success("Modelo de etapa atualizado!");
     } else {
       addStageTemplate({
         id: generateId(),
-        ...formData,
-      });
+        nome: (formData as any).Nome,
+        descricao: (formData as any).Descricao,
+        duracaoPadraoMinutos: (formData as any).DuracaoPadraoMinutos,
+        itensChecklist: (formData as any).ItensChecklist,
+      } as any);
       toast.success("Modelo de etapa criado!");
     }
 
@@ -109,7 +123,10 @@ export default function StageTemplates() {
     if (newChecklistItem.trim()) {
       setFormData((prev) => ({
         ...prev,
-        checklistItems: [...prev.checklistItems, newChecklistItem.trim()],
+        ItensChecklist: [
+          ...(prev as any).ItensChecklist,
+          newChecklistItem.trim(),
+        ],
       }));
       setNewChecklistItem("");
     }
@@ -118,7 +135,9 @@ export default function StageTemplates() {
   const removeChecklistItem = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      checklistItems: prev.checklistItems.filter((_, i) => i !== index),
+      ItensChecklist: (prev as any).ItensChecklist.filter(
+        (_: any, i: number) => i !== index
+      ),
     }));
   };
 
@@ -160,9 +179,9 @@ export default function StageTemplates() {
                 <Label>Nome da Etapa</Label>
                 <Input
                   placeholder="Ex: Anestesia"
-                  value={formData.name}
+                  value={(formData as any).Nome}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    setFormData((prev) => ({ ...prev, Nome: e.target.value }))
                   }
                   required
                 />
@@ -171,11 +190,11 @@ export default function StageTemplates() {
                 <Label>Descrição</Label>
                 <Textarea
                   placeholder="Descreva a etapa..."
-                  value={formData.description}
+                  value={(formData as any).Descricao}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      description: e.target.value,
+                      Descricao: e.target.value,
                     }))
                   }
                   rows={2}
@@ -188,11 +207,11 @@ export default function StageTemplates() {
                   placeholder="Ex: 30"
                   min={1}
                   step={1}
-                  value={formData.defaultDuration || ""}
+                  value={(formData as any).DuracaoPadraoMinutos || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      defaultDuration: parseInt(e.target.value) || 0,
+                      DuracaoPadraoMinutos: parseInt(e.target.value) || 0,
                     }))
                   }
                 />
@@ -217,19 +236,21 @@ export default function StageTemplates() {
                     Adicionar
                   </Button>
                 </div>
-                {formData.checklistItems.length > 0 && (
+                {(formData as any).ItensChecklist.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {formData.checklistItems.map((item, idx) => (
-                      <Badge key={idx} variant="secondary" className="gap-1">
-                        {item}
-                        <button
-                          type="button"
-                          onClick={() => removeChecklistItem(idx)}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
+                    {(formData as any).ItensChecklist.map(
+                      (item: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="gap-1">
+                          {item}
+                          <button
+                            type="button"
+                            onClick={() => removeChecklistItem(idx)}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -267,11 +288,13 @@ export default function StageTemplates() {
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTemplates.map((template) => (
+        {filteredTemplates.map((template: any) => (
           <Card key={template.id} className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-lg">{template.name}</h3>
+                <h3 className="font-semibold text-lg">
+                  {(template as any).Nome || template.nome || "—"}
+                </h3>
                 <div className="flex gap-1">
                   <Button
                     variant="ghost"
@@ -291,28 +314,61 @@ export default function StageTemplates() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                {template.description}
+                {(template as any).Descricao || template.descricao || ""}
               </p>
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>{template.defaultDuration} min</span>
+                  <span>
+                    {(template as any).DuracaoPadraoMinutos ||
+                      template.duracaoPadraoMinutos ||
+                      0}{" "}
+                    min
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <ListChecks className="h-4 w-4" />
-                  <span>{template.checklistItems.length} itens</span>
+                  <span>
+                    {
+                      (
+                        (template as any).ItensChecklist ||
+                        template.itensChecklist ||
+                        []
+                      ).length
+                    }{" "}
+                    itens
+                  </span>
                 </div>
               </div>
-              {template.checklistItems.length > 0 && (
+              {(
+                (template as any).ItensChecklist ||
+                template.itensChecklist ||
+                []
+              ).length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {template.checklistItems.slice(0, 3).map((item, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {item}
-                    </Badge>
-                  ))}
-                  {template.checklistItems.length > 3 && (
+                  {(
+                    (template as any).ItensChecklist ||
+                    template.itensChecklist ||
+                    []
+                  )
+                    .slice(0, 3)
+                    .map((item: string, idx: number) => (
+                      <Badge key={idx} variant="outline" className="text-xs">
+                        {item}
+                      </Badge>
+                    ))}
+                  {(
+                    (template as any).ItensChecklist ||
+                    template.itensChecklist ||
+                    []
+                  ).length > 3 && (
                     <Badge variant="outline" className="text-xs">
-                      +{template.checklistItems.length - 3}
+                      +
+                      {(
+                        (template as any).ItensChecklist ||
+                        template.itensChecklist ||
+                        []
+                      ).length - 3}
                     </Badge>
                   )}
                 </div>

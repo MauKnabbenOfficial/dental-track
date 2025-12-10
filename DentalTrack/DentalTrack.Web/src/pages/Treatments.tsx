@@ -2,19 +2,19 @@ import { useState, useMemo } from "react";
 import {
   Plus,
   Search,
-  Eye,
-  Calendar,
-  User,
-  Stethoscope,
   Edit,
   Trash2,
+  Eye,
   Download,
   FileText,
-  Check,
   Clock,
-  SkipForward,
   Play,
+  User,
+  Stethoscope,
+  Calendar,
   Paperclip,
+  Check,
+  SkipForward,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,17 +60,49 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { HorizontalTimeline } from "@/components/timeline/HorizontalTimeline";
 import { useData, ExtendedFinancialRecord } from "@/contexts/DataContext";
+import { useServices } from "@/services";
 import { Treatment } from "@/data/mockData";
+import {
+  StatusAtendimento,
+  StatusEtapa,
+  TipoLancamento,
+  TipoResponsavel,
+  StatusLancamento,
+} from "@/types/backendEnums";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 const statusConfig = {
-  agendado: { label: "Agendado", variant: "outline" as const },
-  em_andamento: { label: "Em Andamento", variant: "default" as const },
-  concluido: { label: "Concluído", variant: "secondary" as const },
-  cancelado: { label: "Cancelado", variant: "destructive" as const },
+  [StatusAtendimento.Agendado]: {
+    label: "Agendado",
+    variant: "outline" as const,
+  },
+  [StatusAtendimento.EmAndamento]: {
+    label: "Em Andamento",
+    variant: "default" as const,
+  },
+  [StatusAtendimento.Concluido]: {
+    label: "Concluído",
+    variant: "secondary" as const,
+  },
+  [StatusAtendimento.Cancelado]: {
+    label: "Cancelado",
+    variant: "destructive" as const,
+  },
 };
+
+const defaultStatus = { label: "Desconhecido", variant: "default" as const };
+
+function resolveStatusConfig(status?: string) {
+  if (!status) return defaultStatus;
+  return (
+    (statusConfig as any)[status] || {
+      label: String(status),
+      variant: defaultStatus.variant,
+    }
+  );
+}
 
 export default function Treatments() {
   const {
@@ -92,7 +124,12 @@ export default function Treatments() {
     getStagesByTreatmentId,
     getStagesByTemplateId,
     generateId,
+    refreshData,
   } = useData();
+
+  const services = useServices();
+  const treatmentService = services.treatmentService;
+  const financialService = services.financialService;
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -119,42 +156,29 @@ export default function Treatments() {
   // Stage dates for new treatment - map of stage ordemExibicao to scheduled date
   const [stageDates, setStageDates] = useState<Record<number, string>>({});
 
+  const getStageOrder = (stage: any, idx?: number) => {
+    return stage?.OrdemExibicao ?? stage?.ordemExibicao ?? idx ?? 0;
+  };
+
   // Get selected template stages for the form (new treatment)
   // UI-friendly stages (map backend Portuguese fields to the UI shape expected by timeline)
   const selectedTemplateStages = useMemo(() => {
     if (!formData.modeloProcedimentoId) return [];
-    const stages = getStagesByTemplateId(formData.modeloProcedimentoId);
-    return stages.map((s) => ({
-      id: s.id,
-      name: s.nome,
-      ordemExibicao: s.ordemExibicao,
-      description: s.descricao,
-      checklistItems: s.itensChecklist || [],
-    }));
+    return getStagesByTemplateId(formData.modeloProcedimentoId);
   }, [formData.modeloProcedimentoId, getStagesByTemplateId]);
 
   // Get existing stages for editing treatment
   const editingTreatmentStages = useMemo(() => {
     if (!editingTreatment) return [];
-    const stages = getStagesByTreatmentId(editingTreatment.id);
-    return stages.map((s) => ({
-      id: s.id,
-      name: s.nome,
-      ordemExibicao: s.ordemExibicao,
-      status: s.status,
-      scheduledDate: s.dataAgendada,
-      attachments: s.anexos || [],
-      checklistItems: s.itensChecklist || [],
-      completedChecklist: s.checklistConcluido || [],
-    }));
+    return getStagesByTreatmentId(editingTreatment.id);
   }, [editingTreatment, getStagesByTreatmentId]);
 
   // Get all attachments from treatment stages for the info tab
   const treatmentAttachments = useMemo(() => {
     if (!selectedTreatment) return [];
     const stages = getStagesByTreatmentId(selectedTreatment.id).map((s) => ({
-      stageName: s.nome,
-      stageIndex: s.ordemExibicao,
+      stageName: (s as any).Nome || s.nome,
+      stageIndex: (s as any).OrdemExibicao ?? s.ordemExibicao,
       status: s.status,
       attachments: s.anexos || [],
     }));
@@ -164,7 +188,8 @@ export default function Treatments() {
   const filteredTreatments = (treatments as Treatment[]).filter((t) => {
     const patient = getPatientById(t.pacienteId);
     const template = getTemplateById(t.modeloProcedimentoId);
-    const templateName = (template && template.nome) || "";
+    const templateName =
+      (template && ((template as any).Nome || (template as any).nome)) || "";
     const matchesSearch =
       (patient?.nome || "").toLowerCase().includes(search.toLowerCase()) ||
       templateName.toLowerCase().includes(search.toLowerCase());
@@ -181,9 +206,12 @@ export default function Treatments() {
       currency: "BRL",
     }).format(value);
 
-  const dentists = users.filter(
-    (u) => u.role === "dentist" || u.role === "admin"
-  );
+  const dentists = users.filter((u: any) => {
+    const perfil = (u?.perfilNome || "").toString().toLowerCase();
+    return (
+      perfil === "dentista" || perfil === "admin" || perfil === "administrador"
+    );
+  });
 
   const resetForm = () => {
     setFormData({
@@ -213,18 +241,21 @@ export default function Treatments() {
     // Load existing stage dates for editing
     const existingStages = getStagesByTreatmentId(treatment.id);
     const dates: Record<number, string> = {};
+    const getStageOrder = (s: any) => s?.ordemExibicao ?? 0;
     existingStages.forEach((stage: any) => {
-      const key = stage.ordemExibicao ?? stage.orderIndex;
-      const dateVal = stage.dataAgendada || stage.scheduledDate;
+      const key = getStageOrder(stage);
+      const dateVal = stage.dataAgendada;
       if (dateVal) {
-        dates[key] = dateVal;
+        // Normalize date to yyyy-MM-dd for date inputs (strip time portion if present)
+        dates[key] =
+          dateVal && dateVal.includes("T") ? dateVal.split("T")[0] : dateVal;
       }
     });
     setStageDates(dates);
     setIsFormOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate custoTotal
@@ -248,9 +279,9 @@ export default function Treatments() {
       // Update stage dates if changed
       const existingStages = getStagesByTreatmentId(editingTreatment.id);
       existingStages.forEach((stage: any) => {
-        const key = stage.ordemExibicao ?? stage.orderIndex;
+        const key = getStageOrder(stage);
         const newDate = stageDates[key];
-        const currentDate = stage.dataAgendada || stage.scheduledDate;
+        const currentDate = stage.dataAgendada;
         if (newDate !== undefined && newDate !== currentDate) {
           updateTreatmentStage(stage.id, { dataAgendada: newDate });
         }
@@ -258,67 +289,79 @@ export default function Treatments() {
 
       toast.success("Atendimento atualizado!");
     } else {
-      const treatmentId = generateId();
       const template = getTemplateById(formData.modeloProcedimentoId);
       const templateStages = getStagesByTemplateId(
         formData.modeloProcedimentoId
       );
 
-      // Create treatment (Portuguese DTO keys)
-      addTreatment({
-        id: treatmentId,
+      // Prepare payloads without client-generated IDs. Backend will create IDs.
+      const treatmentPayload: any = {
         pacienteId: formData.pacienteId,
         modeloProcedimentoId: formData.modeloProcedimentoId,
         dentistaId: formData.dentistaId,
         dataInicio: formData.dataInicio,
         custoTotal: formData.custoTotal || template?.custoBase || 0,
         observacoes: formData.observacoes,
-        status: "agendado",
+        status: StatusAtendimento.Agendado,
         etapaAtualId: "",
-      });
+      };
 
-      // Copy stages from template with individual dates and checklist (use Portuguese stage fields)
-      templateStages.forEach((stage: any, index: number) => {
-        // Use custom date if set, otherwise use treatment start date for first stage, empty for others
-        const key = stage.ordemExibicao ?? index;
+      const stagesPayload = templateStages.map((stage: any, index: number) => {
+        const key =
+          (stage as any).OrdemExibicao ?? stage.ordemExibicao ?? index;
         const customDate = stageDates[key];
         const scheduledDate =
           customDate || (index === 0 ? formData.dataInicio : "");
-        addTreatmentStage({
-          id: generateId(),
-          atendimentoId: treatmentId,
-          nome: stage.nome,
-          status: index === 0 ? "em_andamento" : "pendente",
-          ordemExibicao: stage.ordemExibicao ?? index,
+        return {
+          nome: (stage as any).Nome || stage.nome,
+          status: index === 0 ? StatusEtapa.EmAndamento : StatusEtapa.Pendente,
+          ordemExibicao:
+            (stage as any).OrdemExibicao ?? stage.ordemExibicao ?? index,
           dataAgendada: scheduledDate,
           observacoes: "",
-          itensChecklist: stage.itensChecklist || [],
+          itensChecklist:
+            (stage as any).ItensChecklist || stage.itensChecklist || [],
           checklistConcluido: [],
-        });
+        };
       });
 
-      // Create financial record if requested (use existing ExtendedFinancialRecord shape used elsewhere)
-      if (formData.createFinancialRecord && template) {
-        const record: ExtendedFinancialRecord = {
-          id: generateId(),
-          // keep compatibility: use treatmentId in the english key as used elsewhere
-          treatmentId,
-          type: "income",
-          amount: formData.custoTotal || (template as any).custoBase,
-          date: formData.dataInicio,
-          description: `${(template as any).nome || (template as any).name} - ${
-            getPatientById(formData.pacienteId)?.nome
-          }`,
-          category: (template as any).categoria || (template as any).category,
-          status: "pending",
-          responsibleType: "patient",
-          patientId: formData.pacienteId,
-          createdBy: "1",
-        } as any;
-        addFinancialRecord(record);
-      }
+      try {
+        const created = await treatmentService.createWithStages(
+          treatmentPayload,
+          stagesPayload
+        );
 
-      toast.success("Atendimento criado!");
+        // Optionally create financial record referencing the created atendimento
+        if (formData.createFinancialRecord && template && created?.id) {
+          const financialPayload: any = {
+            atendimentoId: created.id,
+            tipo: TipoLancamento.Receita,
+            valor: formData.custoTotal || (template as any).custoBase,
+            dataLancamento: formData.dataInicio,
+            descricao: `${(template as any).nome || ""} - ${
+              getPatientById(formData.pacienteId)?.nome
+            }`,
+            categoria: (template as any).categoria || "",
+            status: StatusLancamento.Pendente,
+            tipoResponsavel: TipoResponsavel.Paciente,
+            pacienteId: formData.pacienteId,
+            criadoPorId: "1",
+          };
+          try {
+            await financialService.create(financialPayload);
+          } catch (e) {
+            console.error("Erro ao criar lançamento financeiro:", e);
+            toast.error("Falha ao criar lançamento financeiro");
+          }
+        }
+
+        // Refresh local cache from server to reflect created entities
+        await refreshData();
+        toast.success("Atendimento criado!");
+      } catch (error) {
+        console.error("Erro ao criar atendimento:", error);
+        toast.error("Erro ao criar atendimento");
+      }
     }
 
     setIsFormOpen(false);
@@ -541,18 +584,16 @@ export default function Treatments() {
                             ${index === 0 ? "bg-blue-500" : "bg-slate-400"}
                           `}
                           >
-                            {stage.ordemExibicao ?? stage.orderIndex}
+                            {getStageOrder(stage, index)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">
-                              {stage.name}
+                              {(stage as any).Nome || stage.nome}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {index === 0
                                 ? "Primeira etapa"
-                                : `Etapa ${
-                                    stage.ordemExibicao ?? stage.orderIndex
-                                  }`}
+                                : `Etapa ${getStageOrder(stage, index)}`}
                             </p>
                           </div>
                           <div className="flex-shrink-0">
@@ -560,9 +601,7 @@ export default function Treatments() {
                               type="date"
                               className="w-[150px] h-8 text-sm"
                               value={
-                                stageDates[
-                                  stage.ordemExibicao ?? stage.orderIndex
-                                ] ||
+                                stageDates[getStageOrder(stage, index)] ||
                                 (index === 0
                                   ? (formData as any).dataInicio
                                   : "")
@@ -570,8 +609,7 @@ export default function Treatments() {
                               onChange={(e) => {
                                 setStageDates((prev) => ({
                                   ...prev,
-                                  [stage.ordemExibicao ?? stage.orderIndex]:
-                                    e.target.value,
+                                  [getStageOrder(stage, index)]: e.target.value,
                                 }));
                               }}
                               placeholder="Selecionar"
@@ -596,7 +634,7 @@ export default function Treatments() {
                     <Badge variant="secondary" className="ml-auto">
                       {
                         editingTreatmentStages.filter(
-                          (s) => s.status === "completed"
+                          (s) => s.status === StatusEtapa.Concluido
                         ).length
                       }
                       /{editingTreatmentStages.length} concluídas
@@ -609,16 +647,16 @@ export default function Treatments() {
                     <div className="space-y-2">
                       {editingTreatmentStages.map((stage) => {
                         const statusColors = {
-                          concluido: "bg-emerald-500",
-                          em_andamento: "bg-blue-500",
-                          pendente: "bg-slate-400",
-                          pulado: "bg-amber-500",
+                          [StatusEtapa.Concluido]: "bg-emerald-500",
+                          [StatusEtapa.EmAndamento]: "bg-blue-500",
+                          [StatusEtapa.Pendente]: "bg-slate-400",
+                          [StatusEtapa.Pulado]: "bg-amber-500",
                         } as Record<string, string>;
                         const statusLabels = {
-                          concluido: "Concluído",
-                          em_andamento: "Em andamento",
-                          pendente: "Pendente",
-                          pulado: "Pulado",
+                          [StatusEtapa.Concluido]: "Concluído",
+                          [StatusEtapa.EmAndamento]: "Em andamento",
+                          [StatusEtapa.Pendente]: "Pendente",
+                          [StatusEtapa.Pulado]: "Pulado",
                         } as Record<string, string>;
                         return (
                           <div
@@ -631,25 +669,35 @@ export default function Treatments() {
                               ${statusColors[stage.status]}
                             `}
                             >
-                              {stage.status === "concluido" ? (
+                              {stage.status === StatusEtapa.Concluido ? (
                                 <Check className="h-4 w-4" />
-                              ) : stage.status === "pulado" ? (
+                              ) : stage.status === StatusEtapa.Pulado ? (
                                 <SkipForward className="h-4 w-4" />
                               ) : (
-                                stage.ordemExibicao ?? stage.orderIndex
+                                getStageOrder(stage)
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">
-                                {stage.name}
+                                {(stage as any).Nome || stage.nome}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {statusLabels[stage.status]}
-                                {stage.checklistItems &&
-                                  stage.checklistItems.length > 0 && (
+                                {((stage as any).ItensChecklist ||
+                                  stage.itensChecklist) &&
+                                  (
+                                    (stage as any).ItensChecklist ||
+                                    stage.itensChecklist
+                                  ).length > 0 && (
                                     <span className="ml-1">
-                                      • {stage.completedChecklist?.length || 0}/
-                                      {stage.checklistItems.length} itens
+                                      • {stage.checklistConcluido?.length || 0}/
+                                      {
+                                        (
+                                          (stage as any).ItensChecklist ||
+                                          stage.itensChecklist
+                                        ).length
+                                      }{" "}
+                                      itens
                                     </span>
                                   )}
                               </p>
@@ -658,21 +706,16 @@ export default function Treatments() {
                               <Input
                                 type="date"
                                 className="w-[150px] h-8 text-sm"
-                                value={
-                                  stageDates[
-                                    stage.ordemExibicao ?? stage.orderIndex
-                                  ] || ""
-                                }
+                                value={stageDates[getStageOrder(stage)] || ""}
                                 onChange={(e) => {
                                   setStageDates((prev) => ({
                                     ...prev,
-                                    [stage.ordemExibicao ?? stage.orderIndex]:
-                                      e.target.value,
+                                    [getStageOrder(stage)]: e.target.value,
                                   }));
                                 }}
                                 disabled={
-                                  stage.status === "concluido" ||
-                                  stage.status === "pulado"
+                                  stage.status === StatusEtapa.Concluido ||
+                                  stage.status === StatusEtapa.Pulado
                                 }
                               />
                             </div>
@@ -720,10 +763,18 @@ export default function Treatments() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="agendado">Agendado</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="concluido">Concluído</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
+                <SelectItem value={StatusAtendimento.Agendado}>
+                  Agendado
+                </SelectItem>
+                <SelectItem value={StatusAtendimento.EmAndamento}>
+                  Em Andamento
+                </SelectItem>
+                <SelectItem value={StatusAtendimento.Concluido}>
+                  Concluído
+                </SelectItem>
+                <SelectItem value={StatusAtendimento.Cancelado}>
+                  Cancelado
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -759,7 +810,7 @@ export default function Treatments() {
                 const dentist = getUserById(treatment.dentistaId);
                 const stages = getStagesByTreatmentId(treatment.id);
                 const completedStages = stages.filter(
-                  (s) => s.status === "concluido"
+                  (s) => s.status === StatusEtapa.Concluido
                 ).length;
 
                 return (
@@ -799,9 +850,10 @@ export default function Treatments() {
                       {formatCurrency(treatment.custoTotal || 0)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusConfig[treatment.status].variant}>
-                        {statusConfig[treatment.status].label}
-                      </Badge>
+                      {(() => {
+                        const s = resolveStatusConfig(treatment.status);
+                        return <Badge variant={s.variant}>{s.label}</Badge>;
+                      })()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
@@ -921,10 +973,11 @@ export default function Treatments() {
                         <p className="text-sm text-muted-foreground">Status</p>
                         <Badge
                           variant={
-                            statusConfig[selectedTreatment.status].variant
+                            resolveStatusConfig(selectedTreatment?.status)
+                              .variant
                           }
                         >
-                          {statusConfig[selectedTreatment.status].label}
+                          {resolveStatusConfig(selectedTreatment?.status).label}
                         </Badge>
                       </div>
                     </div>
@@ -982,21 +1035,26 @@ export default function Treatments() {
                                     className={`
                                     flex items-center justify-center w-8 h-8 rounded-full text-white text-sm font-medium
                                     ${
-                                      stageData.status === "concluido"
+                                      stageData.status === StatusEtapa.Concluido
                                         ? "bg-emerald-500"
-                                        : stageData.status === "em_andamento"
+                                        : stageData.status ===
+                                          StatusEtapa.EmAndamento
                                         ? "bg-blue-500"
-                                        : stageData.status === "pulado"
+                                        : stageData.status ===
+                                          StatusEtapa.Pulado
                                         ? "bg-amber-500"
                                         : "bg-slate-400"
                                     }
                                   `}
                                   >
-                                    {stageData.status === "concluido" ? (
+                                    {stageData.status ===
+                                    StatusEtapa.Concluido ? (
                                       <Check className="h-4 w-4" />
-                                    ) : stageData.status === "em_andamento" ? (
+                                    ) : stageData.status ===
+                                      StatusEtapa.EmAndamento ? (
                                       <Play className="h-4 w-4" />
-                                    ) : stageData.status === "pulado" ? (
+                                    ) : stageData.status ===
+                                      StatusEtapa.Pulado ? (
                                       <SkipForward className="h-4 w-4" />
                                     ) : (
                                       <Clock className="h-4 w-4" />

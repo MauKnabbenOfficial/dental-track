@@ -57,7 +57,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useData } from "@/contexts/DataContext";
-import { ProcedureTemplate, ProcedureTemplateStage } from "@/data/mockData";
+import { ProcedureTemplate, ProcedureTemplateStage } from "@/types/backendDtos";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -107,10 +107,8 @@ export default function ProcedureTemplates() {
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [deleteStageId, setDeleteStageId] = useState<string | null>(null);
 
-  // Form state
-  const [formData, setFormData] = useState<
-    Omit<ProcedureTemplate, "id" | "etapas" | "ativo" | "dtCadastro">
-  >({
+  // Form state (PascalCase runtime)
+  const [formData, setFormData] = useState<any>({
     nome: "",
     categoria: "",
     custoBase: 0,
@@ -118,10 +116,8 @@ export default function ProcedureTemplates() {
     descricao: "",
   });
 
-  const filteredTemplates = procedureTemplates.filter(
-    (t) =>
-      (t.nome || "").toLowerCase().includes(search.toLowerCase()) ||
-      (t.categoria || "").toLowerCase().includes(search.toLowerCase())
+  const filteredTemplates = procedureTemplates.filter((t) =>
+    (t.nome || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const formatCurrency = (value: number) =>
@@ -155,11 +151,11 @@ export default function ProcedureTemplates() {
   const openEditDialog = (template: ProcedureTemplate) => {
     setEditingTemplate(template);
     setFormData({
-      nome: template.nome,
-      categoria: template.categoria,
-      custoBase: template.custoBase,
-      duracaoEstimada: template.duracaoEstimada,
-      descricao: template.descricao,
+      nome: (template as any).nome ?? "",
+      descricao: (template as any).descricao ?? "",
+      categoria: (template as any).categoria ?? "",
+      custoBase: (template as any).custoBase ?? 0,
+      duracaoEstimada: (template as any).duracaoEstimada ?? "",
     });
     setIsFormOpen(true);
   };
@@ -168,14 +164,19 @@ export default function ProcedureTemplates() {
     e.preventDefault();
 
     if (editingTemplate) {
-      updateProcedureTemplate(editingTemplate.id, formData);
+      const id = (editingTemplate as any).Id ?? (editingTemplate as any).id;
+      updateProcedureTemplate(id, formData as any);
       toast.success("Modelo atualizado!");
     } else {
       const newTemplate = {
         id: generateId(),
-        ...formData,
-      } as ProcedureTemplate;
-      addProcedureTemplate(newTemplate);
+        nome: formData.nome,
+        categoria: formData.categoria,
+        custoBase: formData.custoBase,
+        duracaoEstimada: formData.duracaoEstimada,
+        descricao: formData.descricao,
+      } as any;
+      addProcedureTemplate(newTemplate as any);
       toast.success("Modelo criado!");
     }
 
@@ -204,13 +205,17 @@ export default function ProcedureTemplates() {
 
     if (stageTemplate) {
       // Use existing template - copy data from template
+      const tplName = (stageTemplate as any).Nome ?? "";
+      const tplDesc = (stageTemplate as any).Descricao ?? "";
+      const tplChecklist = (stageTemplate as any).ItensChecklist ?? [];
+
       addProcedureTemplateStage({
         id: newStageId,
         modeloProcedimentoId: templateId,
-        nome: stageTemplate.name,
+        nome: tplName,
         ordemExibicao: newOrderIndex,
-        descricao: stageTemplate.description,
-        itensChecklist: [...stageTemplate.checklistItems],
+        descricao: tplDesc,
+        itensChecklist: [...tplChecklist],
       });
       toast.success("Etapa adicionada a partir do modelo!");
     } else if (stageSearchValue.trim()) {
@@ -223,17 +228,22 @@ export default function ProcedureTemplates() {
         descricao: "",
         itensChecklist: [],
       };
-      addProcedureTemplateStage(newStage);
-      toast.success("Etapa criada! Complete os detalhes.");
-
-      // Open edit modal to complete the stage details
-      setEditingStage(newStage);
-      setStageFormData({
-        nome: newStage.nome,
-        descricao: "",
-        itensChecklist: [],
-      });
-      setIsStageFormOpen(true);
+      addProcedureTemplateStage(newStage)
+        .then((created) => {
+          toast.success("Etapa criada! Complete os detalhes.");
+          // Open edit modal with the server-created object (contains real id)
+          setEditingStage(created);
+          setStageFormData({
+            nome: (created as any).nome || "",
+            descricao: (created as any).descricao || "",
+            itensChecklist: (created as any).itensChecklist || [],
+          });
+          setIsStageFormOpen(true);
+        })
+        .catch(() => {
+          // Error toast already handled by context, but show friendly message
+          toast.error("Falha ao criar etapa. Tente novamente.");
+        });
     } else {
       return; // No valid selection
     }
@@ -247,15 +257,15 @@ export default function ProcedureTemplates() {
     deleteProcedureTemplateStage(stageId);
     toast.success("Etapa removida!");
     // Reorder remaining stages
-    const stage = procedureTemplateStages.find((s) => s.id === stageId) as
+    const stage = procedureTemplateStages.find((s) => s.Id === stageId) as
       | ProcedureTemplateStage
       | undefined;
     if (stage) {
       const remainingStages = getStagesByTemplateId(
-        stage.modeloProcedimentoId
-      ).filter((s) => s.id !== stageId);
+        (stage as any).ModeloProcedimentoId
+      ).filter((s) => s.Id !== stageId);
       remainingStages.forEach((s, index) => {
-        updateProcedureTemplateStage(s.id, { ordemExibicao: index + 1 });
+        updateProcedureTemplateStage(s.Id, { OrdemExibicao: index + 1 } as any);
       });
     }
     setDeleteStageId(null);
@@ -266,19 +276,21 @@ export default function ProcedureTemplates() {
     stage: ProcedureTemplateStage,
     direction: "up" | "down"
   ) => {
-    const templateStages = getStagesByTemplateId(stage.modeloProcedimentoId);
-    const currentIndex = templateStages.findIndex((s) => s.id === stage.id);
+    const templateStages = getStagesByTemplateId(
+      (stage as any).ModeloProcedimentoId
+    );
+    const currentIndex = templateStages.findIndex((s) => s.Id === stage.Id);
 
     if (direction === "up" && currentIndex > 0) {
       const targetStage = templateStages[currentIndex - 1];
-      swapProcedureTemplateStageOrder(stage.id, targetStage.id);
+      swapProcedureTemplateStageOrder(stage.Id, targetStage.Id);
       toast.success("Ordem atualizada!");
     } else if (
       direction === "down" &&
       currentIndex < templateStages.length - 1
     ) {
       const targetStage = templateStages[currentIndex + 1];
-      swapProcedureTemplateStageOrder(stage.id, targetStage.id);
+      swapProcedureTemplateStageOrder(stage.Id, targetStage.Id);
       toast.success("Ordem atualizada!");
     }
   };
@@ -287,9 +299,9 @@ export default function ProcedureTemplates() {
   const openStageEditDialog = (stage: ProcedureTemplateStage) => {
     setEditingStage(stage);
     setStageFormData({
-      nome: stage.nome,
-      descricao: stage.descricao,
-      itensChecklist: [...(stage.itensChecklist || [])],
+      nome: (stage as any).nome ?? "",
+      descricao: (stage as any).descricao ?? "",
+      itensChecklist: [...((stage as any).itensChecklist ?? [])],
     });
     setIsStageFormOpen(true);
   };
@@ -338,7 +350,7 @@ export default function ProcedureTemplates() {
       const stage = stageTemplates.find(
         (st) => st.id === selectedStageTemplateId
       );
-      return stage?.name || "";
+      return (stage as any)?.nome ?? "";
     }
     return stageSearchValue;
   };
@@ -385,7 +397,10 @@ export default function ProcedureTemplates() {
                     placeholder="Ex: Implante Dentário Unitário"
                     value={formData.nome}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, nome: e.target.value }))
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        nome: e.target.value,
+                      }))
                     }
                     required
                   />
@@ -396,7 +411,7 @@ export default function ProcedureTemplates() {
                     placeholder="Ex: Implantodontia"
                     value={formData.categoria}
                     onChange={(e) =>
-                      setFormData((prev) => ({
+                      setFormData((prev: any) => ({
                         ...prev,
                         categoria: e.target.value,
                       }))
@@ -411,7 +426,7 @@ export default function ProcedureTemplates() {
                     placeholder="0,00"
                     value={formData.custoBase}
                     onChange={(e) =>
-                      setFormData((prev) => ({
+                      setFormData((prev: any) => ({
                         ...prev,
                         custoBase: Number(e.target.value),
                       }))
@@ -425,7 +440,7 @@ export default function ProcedureTemplates() {
                     placeholder="Ex: 3-6 meses"
                     value={formData.duracaoEstimada}
                     onChange={(e) =>
-                      setFormData((prev) => ({
+                      setFormData((prev: any) => ({
                         ...prev,
                         duracaoEstimada: e.target.value,
                       }))
@@ -438,7 +453,7 @@ export default function ProcedureTemplates() {
                     placeholder="Descreva o procedimento..."
                     value={formData.descricao}
                     onChange={(e) =>
-                      setFormData((prev) => ({
+                      setFormData((prev: any) => ({
                         ...prev,
                         descricao: e.target.value,
                       }))
@@ -511,29 +526,32 @@ export default function ProcedureTemplates() {
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
                             <h3 className="text-lg font-semibold">
-                              {template.nome}
+                              {(template as any).nome}
                             </h3>
                             <Badge
                               className={
-                                categoryColors[template.categoria] || "bg-muted"
+                                categoryColors[(template as any).categoria] ||
+                                "bg-muted"
                               }
                             >
-                              {template.categoria}
+                              {(template as any).categoria}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {template.descricao}
+                            {(template as any).descricao}
                           </p>
                           <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <DollarSign className="h-4 w-4" />
                               <span className="font-medium text-foreground">
-                                {formatCurrency(template.custoBase || 0)}
+                                {formatCurrency(
+                                  (template as any).custoBase || 0
+                                )}
                               </span>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <Clock className="h-4 w-4" />
-                              <span>{template.duracaoEstimada}</span>
+                              <span>{(template as any).duracaoEstimada}</span>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <ListChecks className="h-4 w-4" />
@@ -657,33 +675,43 @@ export default function ProcedureTemplates() {
                                         )}
                                       </CommandEmpty>
                                       <CommandGroup>
-                                        {stageTemplates.map((st) => (
-                                          <CommandItem
-                                            key={st.id}
-                                            value={st.name}
-                                            onSelect={() => {
-                                              setSelectedStageTemplateId(st.id);
-                                              setStageSearchValue(st.name);
-                                              setStageComboOpen(false);
-                                            }}
-                                          >
-                                            <Check
-                                              className={cn(
-                                                "mr-2 h-4 w-4",
-                                                selectedStageTemplateId ===
+                                        {stageTemplates.map((st) => {
+                                          const displayName =
+                                            (st as any).nome ?? "";
+                                          const displayDesc =
+                                            (st as any).descricao ?? "";
+                                          return (
+                                            <CommandItem
+                                              key={st.id}
+                                              value={displayName}
+                                              onSelect={() => {
+                                                setSelectedStageTemplateId(
                                                   st.id
-                                                  ? "opacity-100"
-                                                  : "opacity-0"
-                                              )}
-                                            />
-                                            <div>
-                                              <p>{st.name}</p>
-                                              <p className="text-xs text-muted-foreground">
-                                                {st.description}
-                                              </p>
-                                            </div>
-                                          </CommandItem>
-                                        ))}
+                                                );
+                                                setStageSearchValue(
+                                                  displayName
+                                                );
+                                                setStageComboOpen(false);
+                                              }}
+                                            >
+                                              <Check
+                                                className={cn(
+                                                  "mr-2 h-4 w-4",
+                                                  selectedStageTemplateId ===
+                                                    st.id
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                                )}
+                                              />
+                                              <div>
+                                                <p>{displayName}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {displayDesc}
+                                                </p>
+                                              </div>
+                                            </CommandItem>
+                                          );
+                                        })}
                                       </CommandGroup>
                                     </CommandList>
                                   </Command>
@@ -718,7 +746,7 @@ export default function ProcedureTemplates() {
                     <div className="space-y-3">
                       {stages.map((stage, index) => (
                         <div
-                          key={stage.id}
+                          key={stage.Id}
                           className="flex gap-4 p-4 bg-card rounded-lg border"
                         >
                           <div className="flex flex-col items-center gap-1">
@@ -732,7 +760,7 @@ export default function ProcedureTemplates() {
                               <ChevronUp className="h-4 w-4" />
                             </Button>
                             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                              {stage.ordemExibicao}
+                              {(stage as any).ordemExibicao}
                             </div>
                             <Button
                               variant="ghost"
@@ -745,28 +773,28 @@ export default function ProcedureTemplates() {
                             </Button>
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium">{stage.nome}</p>
+                            <p className="font-medium">{(stage as any).nome}</p>
                             <p className="text-sm text-muted-foreground">
-                              {stage.descricao || (
+                              {(stage as any).descricao || (
                                 <span className="italic">Sem descrição</span>
                               )}
                             </p>
-                            {stage.itensChecklist &&
-                              stage.itensChecklist.length > 0 && (
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {stage.itensChecklist.map(
-                                    (item: string, i: number) => (
-                                      <Badge
-                                        key={i}
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
-                                        {item}
-                                      </Badge>
-                                    )
-                                  )}
-                                </div>
-                              )}
+                            {((stage as any).itensChecklist ?? []).length >
+                              0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {(stage as any).itensChecklist.map(
+                                  (item: string, i: number) => (
+                                    <Badge
+                                      key={i}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {item}
+                                    </Badge>
+                                  )
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-col gap-1">
                             <Button
@@ -870,11 +898,11 @@ export default function ProcedureTemplates() {
               <Label>Nome da Etapa</Label>
               <Input
                 placeholder="Ex: Consulta Inicial"
-                value={stageFormData.nome}
+                value={stageFormData.Nome}
                 onChange={(e) =>
                   setStageFormData((prev) => ({
                     ...prev,
-                    nome: e.target.value,
+                    Nome: e.target.value,
                   }))
                 }
                 required
@@ -884,11 +912,11 @@ export default function ProcedureTemplates() {
               <Label>Descrição</Label>
               <Textarea
                 placeholder="Descreva a etapa..."
-                value={stageFormData.descricao}
+                value={stageFormData.Descricao}
                 onChange={(e) =>
                   setStageFormData((prev) => ({
                     ...prev,
-                    descricao: e.target.value,
+                    Descricao: e.target.value,
                   }))
                 }
                 rows={3}
@@ -914,10 +942,10 @@ export default function ProcedureTemplates() {
                   Adicionar
                 </Button>
               </div>
-              {stageFormData.itensChecklist &&
-                stageFormData.itensChecklist.length > 0 && (
+              {stageFormData.ItensChecklist &&
+                stageFormData.ItensChecklist.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {stageFormData.itensChecklist.map(
+                    {stageFormData.ItensChecklist.map(
                       (item: string, idx: number) => (
                         <Badge key={idx} variant="secondary" className="gap-1">
                           {item}
