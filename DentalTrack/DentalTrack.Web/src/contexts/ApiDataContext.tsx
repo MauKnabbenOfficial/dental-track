@@ -237,10 +237,6 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
         financialService.getAll().catch(() => []),
       ]);
 
-      // Adicionar logs para depuração
-      console.log("Templates Data:", templatesData);
-      console.log("Template Stages Data:", templateStagesData);
-
       setUsers(usersData);
       setPatients(patientsData);
       setProcedureTemplates(templatesData);
@@ -266,9 +262,6 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
           );
 
           const perTemplateResults = await Promise.all(perTemplatePromises);
-
-          // Adicionar logs para depuração
-          console.log("Resultados por modelo:", perTemplateResults);
 
           resolvedProcedureTemplateStages = perTemplateResults.flat();
         } catch (e) {
@@ -769,12 +762,6 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
           (a.OrdemExibicao ?? a.ordemExibicao ?? 0) -
           (b.OrdemExibicao ?? b.ordemExibicao ?? 0)
       );
-
-    // Adicionar log para depuração
-    console.log(
-      `Etapas filtradas para ${modeloProcedimentoId}:`,
-      filteredStages
-    );
 
     return filteredStages;
   };

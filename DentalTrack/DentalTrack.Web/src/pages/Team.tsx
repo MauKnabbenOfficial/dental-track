@@ -104,7 +104,6 @@ export default function Team() {
   };
 
   const openEditDialog = (user: User) => {
-    console.log("Editing user:", user);
     setEditingUser(user);
     setFormData({
       nome: user.nome,
@@ -202,7 +201,6 @@ export default function Team() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log("Dados enviados ao backend:", formData);
                 handleSubmit(e);
               }}
               className="space-y-4"

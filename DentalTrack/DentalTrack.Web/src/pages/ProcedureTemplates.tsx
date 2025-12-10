@@ -597,7 +597,6 @@ export default function ProcedureTemplates() {
                       <Dialog
                         open={addingStageToTemplate === template.id}
                         onOpenChange={(open) => {
-                          console.log("Dialog open change:", open);
                           if (!open) {
                             setAddingStageToTemplate(null);
                             setSelectedStageTemplateId("");

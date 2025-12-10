@@ -156,11 +156,9 @@ export function HorizontalTimeline({
   };
 
   // Calculate progress stats (using mapped status keys)
-  console.log("Stages received:", stages); // Log para verificar os dados recebidos
   const progressStats = useMemo(() => {
     const mapped = stages.map((s) => {
       const status = statusMapping[(s as any).status] ?? StatusEtapa.Pendente;
-      console.log("Mapped stage status:", status); // Log para verificar o status mapeado
       return status;
     });
 
@@ -173,14 +171,6 @@ export function HorizontalTimeline({
     const skipped = mapped.filter((st) => st === StatusEtapa.Pulado).length;
     const total = stages.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-    console.log("Progress stats:", {
-      completed,
-      inProgress,
-      skipped,
-      total,
-      percentage,
-    }); // Log para verificar os cálculos de progresso
 
     return { completed, inProgress, skipped, total, percentage };
   }, [stages]);

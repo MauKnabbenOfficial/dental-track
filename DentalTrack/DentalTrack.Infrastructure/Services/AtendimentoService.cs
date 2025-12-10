@@ -81,9 +81,6 @@ namespace DentalTrack.Infrastructure.Services
         public async Task<(AtendimentoDto Atendimento, List<EtapaAtendimentoDto> Etapas)> CriarComEtapasAsync(
             AtendimentoComEtapasCreateDto dto)
         {
-            // Log para verificar os dados recebidos
-            Console.WriteLine("Criando atendimento com DTO:", JsonSerializer.Serialize(dto));
-
             // Carregar etapas do modelo de procedimento
             var modeloProcedimento = await _modeloProcedimentoRepository.ObterPorIdAsync(dto.Atendimento.ModeloProcedimentoId);
             if (modeloProcedimento == null)

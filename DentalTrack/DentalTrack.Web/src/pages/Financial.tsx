@@ -762,8 +762,6 @@ export default function Financial() {
                     new Date(a.dataLancamento).getTime()
                 )
                 .map((record) => {
-                  console.log("record");
-                  console.log(record);
                   const patient = record.pacienteId
                     ? getPatientById(record.pacienteId)
                     : null;
