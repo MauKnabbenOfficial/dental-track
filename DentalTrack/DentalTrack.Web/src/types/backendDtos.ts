@@ -1,22 +1,22 @@
 export interface EtapaModeloProcedimentoDto {
-  Id: string;
-  ModeloProcedimentoId: string;
-  Nome: string;
-  OrdemExibicao: number;
-  Descricao: string;
-  ItensChecklist: string[];
+  id: string;
+  modeloProcedimentoId: string;
+  nome: string;
+  ordemExibicao: number;
+  descricao: string;
+  itensChecklist: string[];
 }
 
 export interface ModeloProcedimentoDto {
-  Id: string;
-  Nome: string;
-  CustoBase: number;
-  DuracaoEstimada: string;
-  Descricao: string;
-  Categoria: string;
-  Ativo: boolean;
-  DtCadastro: string;
-  Etapas?: EtapaModeloProcedimentoDto[];
+  id: string;
+  nome: string;
+  custoBase: number;
+  duracaoEstimada: string;
+  descricao: string;
+  categoria: string;
+  ativo: boolean;
+  dtCadastro: string;
+  etapas?: EtapaModeloProcedimentoDto[];
 }
 
 export type ProcedureTemplate = ModeloProcedimentoDto;

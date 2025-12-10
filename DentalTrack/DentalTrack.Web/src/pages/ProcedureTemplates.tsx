@@ -193,6 +193,7 @@ export default function ProcedureTemplates() {
   };
 
   const handleAddStage = (templateId: string) => {
+    debugger;
     const existingStages = getStagesByTemplateId(templateId);
     const newOrderIndex = existingStages.length + 1;
 
@@ -205,9 +206,9 @@ export default function ProcedureTemplates() {
 
     if (stageTemplate) {
       // Use existing template - copy data from template
-      const tplName = (stageTemplate as any).Nome ?? "";
-      const tplDesc = (stageTemplate as any).Descricao ?? "";
-      const tplChecklist = (stageTemplate as any).ItensChecklist ?? [];
+      const tplName = (stageTemplate as any).nome ?? "";
+      const tplDesc = (stageTemplate as any).descricao ?? "";
+      const tplChecklist = (stageTemplate as any).itensChecklist ?? [];
 
       addProcedureTemplateStage({
         id: newStageId,
@@ -257,15 +258,15 @@ export default function ProcedureTemplates() {
     deleteProcedureTemplateStage(stageId);
     toast.success("Etapa removida!");
     // Reorder remaining stages
-    const stage = procedureTemplateStages.find((s) => s.Id === stageId) as
+    const stage = procedureTemplateStages.find((s) => s.id === stageId) as
       | ProcedureTemplateStage
       | undefined;
     if (stage) {
       const remainingStages = getStagesByTemplateId(
-        (stage as any).ModeloProcedimentoId
-      ).filter((s) => s.Id !== stageId);
+        (stage as any).modeloProcedimentoId
+      ).filter((s) => s.id !== stageId);
       remainingStages.forEach((s, index) => {
-        updateProcedureTemplateStage(s.Id, { OrdemExibicao: index + 1 } as any);
+        updateProcedureTemplateStage(s.id, { ordemExibicao: index + 1 } as any);
       });
     }
     setDeleteStageId(null);
@@ -277,20 +278,20 @@ export default function ProcedureTemplates() {
     direction: "up" | "down"
   ) => {
     const templateStages = getStagesByTemplateId(
-      (stage as any).ModeloProcedimentoId
+      (stage as any).modeloProcedimentoId
     );
-    const currentIndex = templateStages.findIndex((s) => s.Id === stage.Id);
+    const currentIndex = templateStages.findIndex((s) => s.id === stage.id);
 
     if (direction === "up" && currentIndex > 0) {
       const targetStage = templateStages[currentIndex - 1];
-      swapProcedureTemplateStageOrder(stage.Id, targetStage.Id);
+      swapProcedureTemplateStageOrder(stage.id, targetStage.id);
       toast.success("Ordem atualizada!");
     } else if (
       direction === "down" &&
       currentIndex < templateStages.length - 1
     ) {
       const targetStage = templateStages[currentIndex + 1];
-      swapProcedureTemplateStageOrder(stage.Id, targetStage.Id);
+      swapProcedureTemplateStageOrder(stage.id, targetStage.id);
       toast.success("Ordem atualizada!");
     }
   };
@@ -596,6 +597,7 @@ export default function ProcedureTemplates() {
                       <Dialog
                         open={addingStageToTemplate === template.id}
                         onOpenChange={(open) => {
+                          console.log("Dialog open change:", open);
                           if (!open) {
                             setAddingStageToTemplate(null);
                             setSelectedStageTemplateId("");
@@ -746,7 +748,7 @@ export default function ProcedureTemplates() {
                     <div className="space-y-3">
                       {stages.map((stage, index) => (
                         <div
-                          key={stage.Id}
+                          key={stage.id}
                           className="flex gap-4 p-4 bg-card rounded-lg border"
                         >
                           <div className="flex flex-col items-center gap-1">
@@ -898,11 +900,11 @@ export default function ProcedureTemplates() {
               <Label>Nome da Etapa</Label>
               <Input
                 placeholder="Ex: Consulta Inicial"
-                value={stageFormData.Nome}
+                value={stageFormData.nome}
                 onChange={(e) =>
                   setStageFormData((prev) => ({
                     ...prev,
-                    Nome: e.target.value,
+                    nome: e.target.value,
                   }))
                 }
                 required
@@ -912,11 +914,11 @@ export default function ProcedureTemplates() {
               <Label>Descrição</Label>
               <Textarea
                 placeholder="Descreva a etapa..."
-                value={stageFormData.Descricao}
+                value={stageFormData.descricao}
                 onChange={(e) =>
                   setStageFormData((prev) => ({
                     ...prev,
-                    Descricao: e.target.value,
+                    descricao: e.target.value,
                   }))
                 }
                 rows={3}
@@ -942,10 +944,10 @@ export default function ProcedureTemplates() {
                   Adicionar
                 </Button>
               </div>
-              {stageFormData.ItensChecklist &&
-                stageFormData.ItensChecklist.length > 0 && (
+              {stageFormData.itensChecklist &&
+                stageFormData.itensChecklist.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {stageFormData.ItensChecklist.map(
+                    {stageFormData.itensChecklist.map(
                       (item: string, idx: number) => (
                         <Badge key={idx} variant="secondary" className="gap-1">
                           {item}

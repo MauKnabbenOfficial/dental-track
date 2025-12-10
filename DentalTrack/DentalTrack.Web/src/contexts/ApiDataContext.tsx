@@ -573,6 +573,17 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
         return s;
       });
     });
+
+    // Adiciona comunicação com o backend para persistir a troca de ordem
+    procedureTemplateStageService
+      .swapOrder(stageId1, stageId2)
+      .then(() => {
+        toast.success("Ordem das etapas atualizada com sucesso");
+      })
+      .catch((error) => {
+        console.error("Erro ao trocar ordem das etapas:", error);
+        toast.error("Erro ao trocar ordem das etapas");
+      });
   };
 
   // Stage Templates CRUD (local only)
@@ -580,10 +591,10 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
     // Send creation to backend and use server-generated ID.
     stageTemplateService
       .create({
-        Nome: template.nome,
-        Descricao: template.descricao,
-        DuracaoPadraoMinutos: template.duracaoPadraoMinutos,
-        ItensChecklist: template.itensChecklist,
+        nome: template.nome,
+        descricao: template.descricao,
+        duracaoPadraoMinutos: template.duracaoPadraoMinutos,
+        itensChecklist: template.itensChecklist,
       })
       .then((created) => {
         // Add the created item returned by the server (contains real id)

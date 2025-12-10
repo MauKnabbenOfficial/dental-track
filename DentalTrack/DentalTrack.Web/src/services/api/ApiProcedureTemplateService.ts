@@ -209,9 +209,9 @@ export const ApiProcedureTemplateStageService: IProcedureTemplateStageService =
     },
 
     async swapOrder(stageId1: string, stageId2: string): Promise<void> {
-      // Nota: Backend não tem endpoint de swap, apenas de reordenação
-      // Esta função não faz nada por enquanto
-      return Promise.resolve();
+      return apiClient.patch(`/modelosprocedimentos/etapas/trocar-ordem`, {
+        idsEtapas: [stageId1, stageId2],
+      });
     },
 
     async reorderStages(

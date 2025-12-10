@@ -234,6 +234,16 @@ namespace DentalTrack.WebApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Troca a ordem de duas etapas de um modelo de procedimento
+        /// </summary>
+        [HttpPatch("etapas/trocar-ordem")]
+        public async Task<ActionResult> TrocarOrdemEtapas([FromBody] ReordenarEtapasDto etapas)
+        {
+            await _etapaService.TrocarOrdemAsync(etapas.IdsEtapas[0], etapas.IdsEtapas[1]);
+            return NoContent();
+        }
+
         #endregion
     }
 }
