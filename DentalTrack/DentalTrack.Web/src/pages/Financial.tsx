@@ -69,10 +69,10 @@ import {
 } from "recharts";
 
 const paymentStatusConfig = {
-  pending: { label: "Pendente", color: "bg-warning/10 text-warning" },
-  paid: { label: "Pago", color: "bg-success/10 text-success" },
-  cancelled: {
-    label: "Cancelado",
+  pendente: { label: "pendente", color: "bg-warning/10 text-warning" },
+  pago: { label: "pago", color: "bg-success/10 text-success" },
+  cancelado: {
+    label: "cancelado",
     color: "bg-destructive/10 text-destructive",
   },
 };
@@ -103,28 +103,38 @@ export default function Financial() {
 
   // Form state
   const [formData, setFormData] = useState({
-    treatmentId: "",
-    type: "income" as "income" | "expense",
-    amount: 0,
-    date: "",
-    paymentDate: "",
-    description: "",
-    category: "",
-    status: "pending" as "pending" | "paid" | "cancelled",
-    responsibleType: "patient" as "patient" | "clinic",
-    patientId: "",
+    atendimentoId: "",
+    tipo: "",
+    valor: 0,
+    dataLancamento: "",
+    dataPagamento: "",
+    descricao: "",
+    categoria: "",
+    status: "",
+    tipoResponsavel: "",
+    pacienteId: "",
   });
 
-  const filteredRecords = financialRecords.filter((r) => {
-    const matchesSearch = (r.description || "")
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesType = typeFilter === "all" || r.type === typeFilter;
-    const matchesCategory =
-      categoryFilter === "all" || r.category === categoryFilter;
-    const matchesStatus = statusFilter === "all" || r.status === statusFilter;
-    return matchesSearch && matchesType && matchesCategory && matchesStatus;
-  });
+  const filteredRecords = financialRecords
+    .map((record) => ({
+      id: record.id,
+      value: record.valor,
+      status: record.status,
+      responsibleType: record.tipoResponsavel,
+      paymentDate: record.dataPagamento,
+      createdBy: record.criadoPor,
+      ...record,
+    }))
+    .filter((r) => {
+      const matchesSearch = (r.descricao || "")
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesType = typeFilter === "all" || r.tipo === typeFilter;
+      const matchesCategory =
+        categoryFilter === "all" || r.categoria === categoryFilter;
+      const matchesStatus = statusFilter === "all" || r.status === statusFilter;
+      return matchesSearch && matchesType && matchesCategory && matchesStatus;
+    });
 
   const formatDate = (dateStr: string) =>
     format(new Date(dateStr), "dd/MM/yyyy", { locale: ptBR });
@@ -135,25 +145,24 @@ export default function Financial() {
     }).format(value);
 
   const totalIncome = financialRecords
-    .filter((r) => r.type === "income")
-    .reduce((sum, r) => sum + r.amount, 0);
+    .filter((r) => r.tipo === "receita")
+    .reduce((sum, r) => sum + r.valor, 0);
   const totalExpense = financialRecords
-    .filter((r) => r.type === "expense")
-    .reduce((sum, r) => sum + r.amount, 0);
+    .filter((r) => r.tipo === "despesa")
+    .reduce((sum, r) => sum + r.valor, 0);
   const balance = totalIncome - totalExpense;
   const pendingAmount = financialRecords
-    .filter((r) => r.status === "pending")
-    .reduce((sum, r) => sum + r.amount, 0);
-
-  const categories = [...new Set(financialRecords.map((r) => r.category))];
+    .filter((r) => r.status === "pendente")
+    .reduce((sum, r) => sum + r.valor, 0);
+  const categories = [...new Set(financialRecords.map((r) => r.categoria))];
 
   // Data for category pie chart
   const categoryData = categories
     .map((cat) => ({
       name: cat,
       value: financialRecords
-        .filter((r) => r.category === cat && r.type === "income")
-        .reduce((sum, r) => sum + r.amount, 0),
+        .filter((r) => r.categoria === cat && r.tipo === "receita")
+        .reduce((sum, r) => sum + r.valor, 0),
     }))
     .filter((d) => d.value > 0);
 
@@ -178,16 +187,16 @@ export default function Financial() {
 
   const resetForm = () => {
     setFormData({
-      treatmentId: "",
-      type: "income",
-      amount: 0,
-      date: "",
-      paymentDate: "",
-      description: "",
-      category: "",
-      status: "pending",
-      responsibleType: "patient",
-      patientId: "",
+      atendimentoId: "",
+      tipo: "receita",
+      valor: 0,
+      dataLancamento: "",
+      dataPagamento: "",
+      descricao: "",
+      categoria: "",
+      status: "pendente",
+      tipoResponsavel: "paciente",
+      pacienteId: "",
     });
     setEditingRecord(null);
   };
@@ -195,16 +204,16 @@ export default function Financial() {
   const openEditDialog = (record: ExtendedFinancialRecord) => {
     setEditingRecord(record);
     setFormData({
-      treatmentId: record.treatmentId,
-      type: record.type,
-      amount: record.amount,
-      date: record.date,
-      paymentDate: record.paymentDate || "",
-      description: record.description,
-      category: record.category,
+      atendimentoId: record.atendimentoId,
+      tipo: record.tipo,
+      valor: record.valor,
+      dataLancamento: record.dataLancamento,
+      dataPagamento: record.dataPagamento,
+      descricao: record.descricao,
+      categoria: record.categoria,
       status: record.status,
-      responsibleType: record.responsibleType || "patient",
-      patientId: record.patientId || "",
+      tipoResponsavel: record.tipoResponsavel,
+      pacienteId: record.pacienteId || "",
     });
     setIsFormOpen(true);
   };
@@ -215,9 +224,9 @@ export default function Financial() {
     if (editingRecord) {
       updateFinancialRecord(editingRecord.id, {
         ...formData,
-        patientId:
-          formData.responsibleType === "patient"
-            ? formData.patientId
+        pacienteId:
+          formData.tipoResponsavel === "paciente"
+            ? formData.pacienteId
             : undefined,
       });
       toast.success("Lançamento atualizado!");
@@ -225,11 +234,11 @@ export default function Financial() {
       addFinancialRecord({
         id: generateId(),
         ...formData,
-        patientId:
-          formData.responsibleType === "patient"
-            ? formData.patientId
+        pacienteId:
+          formData.tipoResponsavel === "paciente"
+            ? formData.pacienteId
             : undefined,
-        createdBy: "1", // TODO: usar usuário logado
+        criadoPor: "1", // TODO: usar usuário logado
       });
       toast.success("Lançamento criado!");
     }
@@ -282,17 +291,17 @@ export default function Financial() {
                 <div>
                   <Label>Tipo</Label>
                   <Select
-                    value={formData.type}
-                    onValueChange={(value: "income" | "expense") =>
-                      setFormData((prev) => ({ ...prev, type: value }))
+                    value={formData.tipo}
+                    onValueChange={(value: "receita" | "despesa") =>
+                      setFormData((prev) => ({ ...prev, tipo: value }))
                     }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="income">Receita</SelectItem>
-                      <SelectItem value="expense">Despesa</SelectItem>
+                      <SelectItem value="receita">Receita</SelectItem>
+                      <SelectItem value="despesa">Despesa</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -300,7 +309,7 @@ export default function Financial() {
                   <Label>Valor (R$)</Label>
                   <Input
                     type="number"
-                    value={formData.amount}
+                    value={formData.valor}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -315,11 +324,11 @@ export default function Financial() {
                 <Label>Descrição</Label>
                 <Textarea
                   placeholder="Descrição do lançamento..."
-                  value={formData.description}
+                  value={formData.descricao}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      description: e.target.value,
+                      descricao: e.target.value,
                     }))
                   }
                   required
@@ -330,9 +339,12 @@ export default function Financial() {
                   <Label>Data de Lançamento</Label>
                   <Input
                     type="date"
-                    value={formData.date}
+                    value={formData.dataLancamento}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, date: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        dataLancamento: e.target.value,
+                      }))
                     }
                     required
                   />
@@ -341,11 +353,11 @@ export default function Financial() {
                   <Label>Data de Pagamento/Quitação</Label>
                   <Input
                     type="date"
-                    value={formData.paymentDate}
+                    value={formData.dataPagamento}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        paymentDate: e.target.value,
+                        dataPagamento: e.target.value,
                       }))
                     }
                   />
@@ -356,11 +368,11 @@ export default function Financial() {
                   <Label>Categoria</Label>
                   <Input
                     placeholder="Ex: Implantodontia, Material"
-                    value={formData.category}
+                    value={formData.categoria}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        category: e.target.value,
+                        categoria: e.target.value,
                       }))
                     }
                     required
@@ -370,7 +382,7 @@ export default function Financial() {
                   <Label>Status</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value: "pending" | "paid" | "cancelled") =>
+                    onValueChange={(value: "pendente" | "pago" | "cancelado") =>
                       setFormData((prev) => ({ ...prev, status: value }))
                     }
                   >
@@ -389,12 +401,12 @@ export default function Financial() {
                 <div>
                   <Label>Responsável pelo Pagamento</Label>
                   <Select
-                    value={formData.responsibleType}
-                    onValueChange={(value: "patient" | "clinic") =>
+                    value={formData.tipoResponsavel}
+                    onValueChange={(value: "paciente" | "clinica") =>
                       setFormData((prev) => ({
                         ...prev,
-                        responsibleType: value,
-                        patientId: value === "clinic" ? "" : prev.patientId,
+                        tipoResponsavel: value,
+                        pacienteId: value === "clinica" ? "" : prev.pacienteId,
                       }))
                     }
                   >
@@ -417,15 +429,15 @@ export default function Financial() {
                     </SelectContent>
                   </Select>
                 </div>
-                {formData.responsibleType === "patient" && (
+                {formData.tipoResponsavel === "paciente" && (
                   <div>
                     <Label>Paciente</Label>
                     <Select
-                      value={formData.patientId || "none"}
+                      value={formData.pacienteId || "none"}
                       onValueChange={(value) =>
                         setFormData((prev) => ({
                           ...prev,
-                          patientId: value === "none" ? "" : value,
+                          pacienteId: value === "none" ? "" : value,
                         }))
                       }
                     >
@@ -436,7 +448,7 @@ export default function Financial() {
                         <SelectItem value="none">Nenhum</SelectItem>
                         {patients.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
-                            {p.name}
+                            {p.nome}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -447,22 +459,22 @@ export default function Financial() {
               <div>
                 <Label>Atendimento Vinculado (opcional)</Label>
                 <Select
-                  value={formData.treatmentId || "none"}
+                  value={formData.atendimentoId || "none"}
                   onValueChange={(value) => {
-                    const treatmentId = value === "none" ? "" : value;
-                    const treatment = treatments.find(
-                      (t) => t.id === treatmentId
+                    const atendimentoId = value === "none" ? "" : value;
+                    const atendimento = treatments.find(
+                      (t) => t.id === atendimentoId
                     );
                     setFormData((prev) => ({
                       ...prev,
-                      treatmentId,
+                      atendimentoId,
                       // Auto-fill patient if treatment selected
-                      patientId: treatment
-                        ? treatment.patientId
-                        : prev.patientId,
-                      responsibleType: treatment
-                        ? "patient"
-                        : prev.responsibleType,
+                      pacienteId: atendimento
+                        ? atendimento.pacienteId
+                        : prev.pacienteId,
+                      tipoResponsavel: atendimento
+                        ? "paciente"
+                        : prev.tipoResponsavel,
                     }));
                   }}
                 >
@@ -472,11 +484,11 @@ export default function Financial() {
                   <SelectContent>
                     <SelectItem value="none">Nenhum</SelectItem>
                     {treatments.map((t) => {
-                      const patient = getPatientById(t.patientId);
-                      const template = getTemplateById(t.templateId);
+                      const patient = getPatientById(t.pacienteId);
+                      const template = getTemplateById(t.modeloProcedimentoId);
                       return (
                         <SelectItem key={t.id} value={t.id}>
-                          {patient?.nome} - {template?.name}
+                          {patient?.nome} - {template?.Nome}
                         </SelectItem>
                       );
                     })}
@@ -686,8 +698,8 @@ export default function Financial() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="income">Receitas</SelectItem>
-                <SelectItem value="expense">Despesas</SelectItem>
+                <SelectItem value="receita">Receitas</SelectItem>
+                <SelectItem value="despesa">Despesas</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -744,11 +756,14 @@ export default function Financial() {
               {filteredRecords
                 .sort(
                   (a, b) =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                    new Date(b.dataLancamento).getTime() -
+                    new Date(a.dataLancamento).getTime()
                 )
                 .map((record) => {
-                  const patient = record.patientId
-                    ? getPatientById(record.patientId)
+                  console.log("record");
+                  console.log(record);
+                  const patient = record.pacienteId
+                    ? getPatientById(record.pacienteId)
                     : null;
                   const creator = record.createdBy
                     ? getUserById(record.createdBy)
@@ -757,10 +772,10 @@ export default function Financial() {
                   return (
                     <TableRow key={record.id}>
                       <TableCell className="text-muted-foreground">
-                        {formatDate(record.date)}
+                        {formatDate(record.dataLancamento)}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {record.description}
+                        {record.descricao}
                       </TableCell>
                       <TableCell>
                         {record.responsibleType === "clinic" ? (
@@ -778,10 +793,10 @@ export default function Financial() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{record.category}</Badge>
+                        <Badge variant="outline">{record.categoria}</Badge>
                       </TableCell>
                       <TableCell>
-                        {record.type === "income" ? (
+                        {record.tipo === "receita" ? (
                           <Badge className="bg-success/10 text-success">
                             <ArrowUpRight className="h-3 w-3 mr-1" />
                             Receita
@@ -801,17 +816,17 @@ export default function Financial() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {creator?.name || "—"}
+                        {creator?.nome || "—"}
                       </TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
-                          record.type === "income"
+                          record.tipo === "renda"
                             ? "text-success"
                             : "text-destructive"
                         }`}
                       >
-                        {record.type === "income" ? "+" : "-"}{" "}
-                        {formatCurrency(record.amount)}
+                        {record.tipo === "renda" ? "+" : "-"}{" "}
+                        {formatCurrency(record.valor)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">

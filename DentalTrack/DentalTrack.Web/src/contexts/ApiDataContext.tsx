@@ -25,13 +25,7 @@ import {
 } from "@/types/backendDtos";
 
 // Extended FinancialRecord with new fields
-export interface ExtendedFinancialRecord extends FinancialRecord {
-  paymentDate?: string;
-  status: StatusLancamento;
-  responsibleType: TipoResponsavel;
-  patientId?: string;
-  createdBy: string;
-}
+export interface ExtendedFinancialRecord extends FinancialRecord {}
 
 // Stage Template for reusable stages
 export interface StageTemplate {
@@ -320,13 +314,16 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
       }
 
       setTreatmentStages(resolvedTreatmentStages as TreatmentStage[]);
+      // Ensure financialRecords are normalized to camelCase
       setFinancialRecords(
-        financialData.map((r) => ({
-          ...r,
-          status: (r as any).status || StatusLancamento.Pago,
-          responsibleType:
-            (r as any).responsibleType || TipoResponsavel.Paciente,
-          createdBy: (r as any).createdBy || "",
+        financialData.map((record) => ({
+          id: record.id || record.Id,
+          value: record.valor || record.Valor,
+          status: record.status || record.Status,
+          responsibleType: record.responsibleType || record.ResponsibleType,
+          paymentDate: record.paymentDate || record.PaymentDate,
+          createdBy: record.createdBy || record.CreatedBy,
+          ...record,
         })) as ExtendedFinancialRecord[]
       );
     } catch (error) {

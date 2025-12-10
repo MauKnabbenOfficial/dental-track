@@ -186,19 +186,19 @@ namespace DentalTrack.Infrastructure.Services
                 PacienteNome = l.Paciente?.Nome,
                 CriadoPorId = l.CriadoPorId,
                 CriadoPorNome = l.CriadoPor?.Nome ?? string.Empty,
-                Tipo = l.Tipo == TipoLancamento.Receita ? "income" : "expense",
+                Tipo = l.Tipo == TipoLancamento.Receita ? "receita" : "despesa",
                 Valor = l.Valor,
                 DataLancamento = l.DataLancamento,
                 DataPagamento = l.DataPagamento,
                 Descricao = l.Descricao,
                 Categoria = l.Categoria,
-                TipoResponsavel = l.TipoResponsavel == TipoResponsavel.Paciente ? "patient" : "clinic",
+                TipoResponsavel = l.TipoResponsavel == TipoResponsavel.Paciente ? "paciente" : "clinica",
                 Status = l.Status switch
                 {
-                    StatusLancamento.Pendente => "pending",
-                    StatusLancamento.Pago => "paid",
-                    StatusLancamento.Cancelado => "cancelled",
-                    _ => "pending"
+                    StatusLancamento.Pendente => "pendente",
+                    StatusLancamento.Pago => "pago",
+                    StatusLancamento.Cancelado => "cancelado",
+                    _ => "pendente"
                 },
                 DtCadastro = l.DtCadastro
             };

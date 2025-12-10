@@ -1,7 +1,7 @@
-import { User } from "@/data/mockData";
 import { IUserService } from "../interfaces/IUserService";
 import { apiClient, buildQueryString } from "../http";
 import { mapApiUserToUser } from "./ApiAuthService";
+import { User } from "@/types/backendDtos";
 
 interface ApiUser {
   id: string;
@@ -56,7 +56,7 @@ export const ApiUserService: IUserService = {
     return apiClient.delete(`/usuarios/${id}`);
   },
 
-  async getByRole(role: User["role"]): Promise<User[]> {
+  async getByRole(role: User["perfilNome"]): Promise<User[]> {
     const data = await apiClient.get<ApiUser[]>(`/usuarios/perfil/${role}`);
     return data.map((u) => mapApiUserToUser(u as any) as User);
   },

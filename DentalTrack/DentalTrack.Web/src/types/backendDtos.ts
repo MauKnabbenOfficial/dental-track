@@ -85,20 +85,20 @@ export interface EtapaAtendimentoDto {
 
 // Lançamento Financeiro (backend: LancamentoFinanceiroDto)
 export interface LancamentoFinanceiroDto {
-  Id: string;
   id?: string;
-  Valor?: number;
-  valor?: number;
-  Status?: string;
-  status?: string;
-  ResponsibleType?: string;
-  responsibleType?: string;
-  AtendimentoId?: string;
   atendimentoId?: string;
-  CreatedBy?: string;
-  createdBy?: string;
-  PaymentDate?: string;
-  paymentDate?: string;
+  pacienteId?: string;
+  pacienteNome?: string;
+  criadoPor?: string;
+  tipo?: string;
+  valor?: number;
+  dataLancamento?: string;
+  dataPagamento?: string;
+  descricao?: string;
+  categoria?: string;
+  tipoResponsavel?: string;
+  status?: string;
+  dtCadastro?: string;
 }
 
 // Backwards-compatible aliases (keep existing frontend type names)
