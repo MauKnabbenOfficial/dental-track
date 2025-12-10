@@ -40,6 +40,14 @@ export const ApiUserService: IUserService = {
   },
 
   async update(id: string, data: Partial<User>): Promise<User> {
+    if (
+      !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+        id
+      )
+    ) {
+      throw new Error("O ID fornecido não é um GUID válido.");
+    }
+
     const updated = await apiClient.put<ApiUser>(`/usuarios/${id}`, data);
     return mapApiUserToUser(updated as any) as User;
   },

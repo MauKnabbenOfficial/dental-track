@@ -41,8 +41,8 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useData } from "@/contexts/DataContext";
-import { User } from "@/data/mockData";
 import { toast } from "sonner";
+import { User } from "@/types/backendDtos";
 
 const roleConfig = {
   admin: {
@@ -50,12 +50,12 @@ const roleConfig = {
     icon: Shield,
     color: "bg-primary/10 text-primary",
   },
-  dentist: {
+  dentista: {
     label: "Dentista",
     icon: Stethoscope,
     color: "bg-accent/10 text-accent",
   },
-  reception: {
+  recepcionista: {
     label: "Recepção",
     icon: UserCircle,
     color: "bg-secondary text-secondary-foreground",
@@ -73,7 +73,8 @@ export default function Team() {
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
-    perfilNome: "dentist" as "admin" | "dentist" | "reception",
+    perfilNome: "dentista" as "admin" | "dentista" | "recepcionista",
+    perfilId: "",
     especialidade: "",
   });
 
@@ -95,42 +96,55 @@ export default function Team() {
     setFormData({
       nome: "",
       email: "",
-      perfilNome: "dentist",
+      perfilNome: "dentista",
+      perfilId: "",
       especialidade: "",
     });
     setEditingUser(null);
   };
 
   const openEditDialog = (user: User) => {
+    console.log("Editing user:", user);
     setEditingUser(user);
     setFormData({
       nome: user.nome,
       email: user.email,
-      perfilNome: (user as any).perfilNome || "dentist",
+      perfilNome: (user as any).perfilNome || "dentista",
+      perfilId: (user as any).perfilId || "",
       especialidade: user.especialidade || "",
     });
     setIsFormOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Simulate fetching perfilId based on perfilNome
+    const perfilIdMap = {
+      admin: "11111111-1111-1111-1111-111111111111",
+      dentista: "22222222-2222-2222-2222-222222222222",
+      recepcionista: "33333333-3333-3333-3333-333333333333",
+    };
+
+    const perfilId = perfilIdMap[formData.perfilNome];
+
+    if (!perfilId) {
+      toast.error("Perfil inválido. Por favor, selecione um perfil válido.");
+      return;
+    }
+
+    const userPayload = {
+      nome: formData.nome,
+      email: formData.email,
+      perfilId: perfilId,
+      especialidade: formData.especialidade,
+    };
+
     if (editingUser) {
-      updateUser(editingUser.id, {
-        nome: formData.nome,
-        email: formData.email,
-        perfilNome: formData.perfilNome,
-        especialidade: formData.especialidade,
-      });
+      updateUser(editingUser.id, userPayload);
       toast.success("Membro atualizado!");
     } else {
-      addUser({
-        id: generateId(),
-        nome: formData.nome,
-        email: formData.email,
-        perfilNome: formData.perfilNome,
-        especialidade: formData.especialidade,
-      });
+      addUser(userPayload);
       toast.success("Membro cadastrado!");
     }
 
@@ -171,13 +185,28 @@ export default function Team() {
           <DialogContent
             className="max-w-lg"
             onCloseAutoFocus={(e) => e.preventDefault()}
+            aria-describedby="dialog-description"
           >
             <DialogHeader>
               <DialogTitle>
                 {editingUser ? "Editar" : "Cadastrar Novo"} Membro
               </DialogTitle>
+              <p
+                id="dialog-description"
+                className="text-sm text-muted-foreground"
+              >
+                Preencha os campos abaixo para adicionar ou editar um membro da
+                equipe.
+              </p>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                console.log("Dados enviados ao backend:", formData);
+                handleSubmit(e);
+              }}
+              className="space-y-4"
+            >
               <div>
                 <Label>Nome Completo</Label>
                 <Input
@@ -205,17 +234,17 @@ export default function Team() {
                 <Label>Perfil de Acesso</Label>
                 <Select
                   value={formData.perfilNome}
-                  onValueChange={(value: "admin" | "dentist" | "reception") =>
-                    setFormData((prev) => ({ ...prev, perfilNome: value }))
-                  }
+                  onValueChange={(
+                    value: "admin" | "dentista" | "recepcionista"
+                  ) => setFormData((prev) => ({ ...prev, perfilNome: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o perfil" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="dentist">Dentista</SelectItem>
-                    <SelectItem value="reception">Recepção</SelectItem>
+                    <SelectItem value="dentista">Dentista</SelectItem>
+                    <SelectItem value="recepcionista">Recepção</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -270,8 +299,9 @@ export default function Team() {
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-primary">
               {
-                users.filter((u) => u.role === "dentist" || u.role === "admin")
-                  .length
+                users.filter(
+                  (u) => u.perfilNome === "dentista" || u.perfilNome === "admin"
+                ).length
               }
             </div>
             <p className="text-sm text-muted-foreground mt-1">Dentistas</p>
@@ -280,7 +310,7 @@ export default function Team() {
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-3xl font-bold text-accent">
-              {users.filter((u) => u.role === "reception").length}
+              {users.filter((u) => u.perfilNome === "recepcionista").length}
             </div>
             <p className="text-sm text-muted-foreground mt-1">Recepcionistas</p>
           </CardContent>
@@ -300,7 +330,11 @@ export default function Team() {
       {/* Team Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredUsers.map((user) => {
-          const role = roleConfig[(user as any).perfilNome || "reception"];
+          const role = roleConfig[(user as any).perfilNome] || {
+            label: "Desconhecido",
+            icon: UserCircle,
+            color: "bg-muted text-muted-foreground",
+          };
           const RoleIcon = role.icon;
 
           return (

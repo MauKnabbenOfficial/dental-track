@@ -24,15 +24,10 @@ export type ProcedureTemplateStage = EtapaModeloProcedimentoDto;
 
 // Usuários (backend: UsuarioDto)
 export interface UsuarioDto {
-  Id: string;
   id?: string;
-  Nome?: string;
   nome?: string;
-  Email?: string;
   email?: string;
-  PerfilNome?: string;
   perfilNome?: string;
-  Especialidade?: string;
   especialidade?: string;
 }
 
