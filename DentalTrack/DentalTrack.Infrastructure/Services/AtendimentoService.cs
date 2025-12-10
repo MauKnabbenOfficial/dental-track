@@ -10,13 +10,16 @@ namespace DentalTrack.Infrastructure.Services
     {
         private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IEtapaAtendimentoRepository _etapaRepository;
+        private readonly IModeloProcedimentoRepository _modeloProcedimentoRepository;
 
         public AtendimentoService(
             IAtendimentoRepository atendimentoRepository,
-            IEtapaAtendimentoRepository etapaRepository)
+            IEtapaAtendimentoRepository etapaRepository,
+            IModeloProcedimentoRepository modeloProcedimentoRepository)
         {
             _atendimentoRepository = atendimentoRepository;
             _etapaRepository = etapaRepository;
+            _modeloProcedimentoRepository = modeloProcedimentoRepository;
         }
 
         public async Task<List<AtendimentoDto>> ObterTodosAsync()
@@ -35,7 +38,7 @@ namespace DentalTrack.Infrastructure.Services
         {
             StatusAtendimento? status = null;
             if (!string.IsNullOrEmpty(filtro.Status))
-                status = ParseStatus(filtro.Status);
+                status = Enum.TryParse<StatusAtendimento>(filtro.Status, true, out var parsedStatus) ? parsedStatus : null;
 
             var (dados, total) = await _atendimentoRepository.BuscarPaginadoAsync(
                 filtro.Busca, filtro.PacienteId, filtro.DentistaId, status,
@@ -59,7 +62,7 @@ namespace DentalTrack.Infrastructure.Services
 
         public async Task<List<AtendimentoDto>> ObterPorStatusAsync(string status)
         {
-            var statusEnum = ParseStatus(status);
+            var statusEnum = Enum.Parse<StatusAtendimento>(status, true);
             var atendimentos = await _atendimentoRepository.ObterPorStatusAsync(statusEnum);
             return atendimentos.Select(MapToDto).ToList();
         }
@@ -78,6 +81,14 @@ namespace DentalTrack.Infrastructure.Services
         public async Task<(AtendimentoDto Atendimento, List<EtapaAtendimentoDto> Etapas)> CriarComEtapasAsync(
             AtendimentoComEtapasCreateDto dto)
         {
+            // Log para verificar os dados recebidos
+            Console.WriteLine("Criando atendimento com DTO:", JsonSerializer.Serialize(dto));
+
+            // Carregar etapas do modelo de procedimento
+            var modeloProcedimento = await _modeloProcedimentoRepository.ObterPorIdAsync(dto.Atendimento.ModeloProcedimentoId);
+            if (modeloProcedimento == null)
+                throw new ArgumentException("Modelo de procedimento não encontrado");
+
             var atendimento = new Atendimento(
                 dto.Atendimento.PacienteId, dto.Atendimento.ModeloProcedimentoId,
                 dto.Atendimento.DentistaId, dto.Atendimento.DataInicio,
@@ -86,13 +97,15 @@ namespace DentalTrack.Infrastructure.Services
             await _atendimentoRepository.AdicionarAsync(atendimento);
 
             var etapas = new List<EtapaAtendimento>();
-            foreach (var etapaDto in dto.Etapas)
+
+            int ordem = 0;
+            foreach (var etapaModelo in modeloProcedimento.Etapas.OrderBy(x => x.OrdemExibicao))
             {
-                var itensJson = etapaDto.ItensChecklist != null
-                    ? JsonSerializer.Serialize(etapaDto.ItensChecklist) : null;
+                var itensJson = etapaModelo.ItensChecklistJson != null
+                    ? JsonSerializer.Serialize(etapaModelo.ItensChecklistJson) : null;
                 var etapa = new EtapaAtendimento(
-                    atendimento.Id, etapaDto.Nome, etapaDto.OrdemExibicao,
-                    etapaDto.DataAgendada, itensJson);
+                    atendimento.Id, etapaModelo.Nome, etapaModelo.OrdemExibicao,
+                    dto.Etapas[ordem++].DataAgendada, itensJson);
                 await _etapaRepository.AdicionarAsync(etapa);
                 etapas.Add(etapa);
             }
@@ -122,7 +135,8 @@ namespace DentalTrack.Infrastructure.Services
             var atendimento = await _atendimentoRepository.ObterPorIdAsync(id);
             if (atendimento == null) return false;
 
-            atendimento.AlterarStatus(ParseStatus(status));
+            var statusEnum = Enum.Parse<StatusAtendimento>(status, true);
+            atendimento.AlterarStatus(statusEnum);
             await _atendimentoRepository.AtualizarAsync(atendimento);
             return true;
         }
@@ -130,30 +144,6 @@ namespace DentalTrack.Infrastructure.Services
         public async Task<bool> ExcluirAsync(Guid id)
         {
             return await _atendimentoRepository.RemoverAsync(id);
-        }
-
-        private static StatusAtendimento ParseStatus(string status)
-        {
-            return status.ToLower() switch
-            {
-                "scheduled" or "agendado" => StatusAtendimento.Agendado,
-                "in_progress" or "emandamento" => StatusAtendimento.EmAndamento,
-                "completed" or "concluido" => StatusAtendimento.Concluido,
-                "cancelled" or "cancelado" => StatusAtendimento.Cancelado,
-                _ => StatusAtendimento.Agendado
-            };
-        }
-
-        private static string StatusToString(StatusAtendimento status)
-        {
-            return status switch
-            {
-                StatusAtendimento.Agendado => "scheduled",
-                StatusAtendimento.EmAndamento => "in_progress",
-                StatusAtendimento.Concluido => "completed",
-                StatusAtendimento.Cancelado => "cancelled",
-                _ => "scheduled"
-            };
         }
 
         private static AtendimentoDto MapToDto(Atendimento a)
@@ -168,7 +158,7 @@ namespace DentalTrack.Infrastructure.Services
                 DentistaId = a.DentistaId,
                 DentistaNome = a.Dentista?.Nome ?? string.Empty,
                 DataInicio = a.DataInicio,
-                Status = StatusToString(a.Status),
+                Status = a.Status.ToString(),
                 EtapaAtualId = a.EtapaAtualId,
                 CustoTotal = a.CustoTotal,
                 Observacoes = a.Observacoes,
@@ -184,7 +174,7 @@ namespace DentalTrack.Infrastructure.Services
                 Id = e.Id,
                 AtendimentoId = e.AtendimentoId,
                 Nome = e.Nome,
-                Status = StatusEtapaToString(e.Status),
+                Status = e.Status.ToString(),
                 OrdemExibicao = e.OrdemExibicao,
                 DataAgendada = e.DataAgendada,
                 DataConclusao = e.DataConclusao,
@@ -193,18 +183,6 @@ namespace DentalTrack.Infrastructure.Services
                 ItensChecklist = DeserializeJson(e.ItensChecklistJson),
                 ChecklistConcluido = DeserializeJson(e.ChecklistConcluidoJson),
                 DtCadastro = e.DtCadastro
-            };
-        }
-
-        private static string StatusEtapaToString(StatusEtapa status)
-        {
-            return status switch
-            {
-                StatusEtapa.Pendente => "pending",
-                StatusEtapa.EmAndamento => "in_progress",
-                StatusEtapa.Concluido => "completed",
-                StatusEtapa.Pulado => "skipped",
-                _ => "pending"
             };
         }
 
@@ -266,7 +244,7 @@ namespace DentalTrack.Infrastructure.Services
             var etapa = await _etapaRepository.ObterPorIdAsync(id);
             if (etapa == null) throw new ArgumentException("Etapa não encontrada");
 
-            var status = ParseStatus(dto.Status);
+            var status = Enum.Parse<StatusEtapa>(dto.Status, true);
             etapa.AlterarStatus(status);
             if (status == StatusEtapa.Concluido && dto.DataConclusao.HasValue)
                 etapa.Concluir(dto.DataConclusao);
@@ -315,18 +293,6 @@ namespace DentalTrack.Infrastructure.Services
             return await _etapaRepository.RemoverAsync(id);
         }
 
-        private static StatusEtapa ParseStatus(string status)
-        {
-            return status.ToLower() switch
-            {
-                "pending" or "pendente" => StatusEtapa.Pendente,
-                "in_progress" or "emandamento" => StatusEtapa.EmAndamento,
-                "completed" or "concluido" => StatusEtapa.Concluido,
-                "skipped" or "pulado" => StatusEtapa.Pulado,
-                _ => StatusEtapa.Pendente
-            };
-        }
-
         private static EtapaAtendimentoDto MapToDto(EtapaAtendimento e)
         {
             return new EtapaAtendimentoDto
@@ -334,14 +300,7 @@ namespace DentalTrack.Infrastructure.Services
                 Id = e.Id,
                 AtendimentoId = e.AtendimentoId,
                 Nome = e.Nome,
-                Status = e.Status switch
-                {
-                    StatusEtapa.Pendente => "pending",
-                    StatusEtapa.EmAndamento => "in_progress",
-                    StatusEtapa.Concluido => "completed",
-                    StatusEtapa.Pulado => "skipped",
-                    _ => "pending"
-                },
+                Status = e.Status.ToString(),
                 OrdemExibicao = e.OrdemExibicao,
                 DataAgendada = e.DataAgendada,
                 DataConclusao = e.DataConclusao,
