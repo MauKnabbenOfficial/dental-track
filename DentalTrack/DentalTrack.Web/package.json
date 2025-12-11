@@ -3,10 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
+    "dev:electron": "vite --mode electron",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:8080 && electron .\"",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:electron": "vite build && electron-builder",
+    "build:electron:win": "vite build && electron-builder --win",
+    "build:electron:mac": "vite build && electron-builder --mac",
+    "build:electron:linux": "vite build && electron-builder --linux",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -71,6 +78,10 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -80,6 +91,43 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^5.4.19"
+    "vite": "^5.4.19",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.dentaltrack.app",
+    "productName": "DentalTrack",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "public/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "public/images/logo.png"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "public/images/logo.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/images/logo.png",
+      "category": "Office"
+    }
   }
 }
