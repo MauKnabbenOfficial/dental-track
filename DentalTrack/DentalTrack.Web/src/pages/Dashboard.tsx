@@ -87,16 +87,18 @@ export default function Dashboard() {
   } = useData();
 
   const inProgressTreatments = treatments.filter(
-    (t) => (t as any).status === "em_andamento"
+    (t) => (t as any).status === "EmAndamento"
   );
 
   // Find current appointment (happening right now)
   const currentAppointment = useMemo(() => {
+    console.log(treatments);
     const now = new Date();
     const today = now.toISOString().split("T")[0];
 
     // Find stages scheduled for today
     for (const treatment of inProgressTreatments) {
+      console.log("Checking treatment:", treatment);
       const stages = getStagesByTreatmentId(treatment.id);
       const currentStage = stages.find(
         (s: any) => (s as any).status === "em_andamento"
@@ -158,8 +160,10 @@ export default function Dashboard() {
   const monthlyRevenue = useMemo(() => {
     const currentYear = new Date().toISOString().slice(0, 4);
     return financialRecords
-      .filter((r) => r.type === "income" && r.date.startsWith(currentYear))
-      .reduce((sum, r) => sum + r.amount, 0);
+      .filter(
+        (r) => r.tipo === "receita" && r.dataLancamento.startsWith(currentYear)
+      )
+      .reduce((sum, r) => sum + r.valor, 0);
   }, [financialRecords]);
 
   const handleExportPDF = async () => {
@@ -330,15 +334,15 @@ export default function Dashboard() {
                       {currentAppointment.patient?.nome}
                     </h3>
                     <p className="text-muted-foreground">
-                      {currentAppointment.template?.name}
+                      {currentAppointment.template?.nome}
                     </p>
                     <div className="flex items-center gap-4 mt-1 text-sm">
                       <span className="flex items-center gap-1 text-muted-foreground">
                         <User className="h-3 w-3" />
-                        {currentAppointment.dentist?.name}
+                        {currentAppointment.dentist?.nome}
                       </span>
                       <Badge variant="secondary">
-                        {currentAppointment.stage?.name}
+                        {currentAppointment.stage?.nome}
                       </Badge>
                     </div>
                   </div>
@@ -467,15 +471,15 @@ export default function Dashboard() {
                           {patient?.nome}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {template?.nome || template?.name}
+                          {template?.nome || template?.nome}
                         </p>
                       </div>
                       <div className="text-right">
                         <Badge variant="secondary" className="text-xs">
-                          {template?.categoria || template?.category}
+                          {template?.categoria || template?.categoria}
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {dentist?.name.split(" ").slice(0, 2).join(" ")}
+                          {dentist?.nome.split(" ").slice(0, 2).join(" ")}
                         </p>
                       </div>
                     </div>
