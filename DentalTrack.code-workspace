@@ -1,0 +1,52 @@
+{
+  "folders": [
+    {
+      "name": "FRONTEND",
+      "path": "DentalTrack/DentalTrack.Web"
+    },
+    {
+      "name": "BACKEND",
+      "path": "DentalTrack"
+    }
+  ],
+  "settings": {
+    // --- Geral ---
+    "editor.formatOnSave": true,
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/*.suo": true,
+      "**/*.user": true,
+      "**/bin": false, // Mantive visível para debug se precisar
+      "**/obj": false
+    },
+
+    // --- Otimização de Busca ---
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/bin": true,
+      "**/obj": true
+    },
+
+    // --- Frontend (DentalTrack.Web) ---
+    "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+    // --- Backend (C#) ---
+    "[csharp]": { "editor.defaultFormatter": "ms-dotnettools.csharp" },
+
+    // Aponta para a Solution correta dentro da pasta DentalTrack
+    "dotnet.defaultSolution": "DentalTrack/DentalTrack.sln"
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "ms-dotnettools.csdevkit",
+      "ms-dotnettools.csharp"
+    ]
+  }
+}
