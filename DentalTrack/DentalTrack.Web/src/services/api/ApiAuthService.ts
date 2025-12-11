@@ -1,6 +1,6 @@
-import { User } from "@/data/mockData";
 import { IAuthService, AuthResult } from "../interfaces/IAuthService";
 import { apiClient, TokenManager } from "../http";
+import { User } from "@/types/backendDtos";
 
 /**
  * Interface que representa a resposta da API de login (campos em português)
@@ -137,17 +137,6 @@ export const ApiAuthService: IAuthService = {
       // Atualiza tokens
       TokenManager.setToken(result.token);
       TokenManager.setRefreshToken(result.refreshToken);
-      // map user if needed
-      const mappedUser =
-        result.user && result.user.perfilNome
-          ? mapApiUserToUser(result.user as LoginApiResponse["usuario"])
-          : (result.user as User);
-      if (mappedUser) {
-        localStorage.setItem(
-          "dentaltrack_auth_user",
-          JSON.stringify(mappedUser)
-        );
-      }
 
       return {
         success: true,

@@ -364,8 +364,12 @@ export function ApiDataProvider({ children }: { children: ReactNode }) {
       // If localStorage isn't available (server-side render or strict env), ignore.
     }
 
-    refreshData();
-  }, [refreshData]);
+    if (authUser) {
+      refreshData(); // Apenas carrega os dados se o usuário estiver autenticado
+    } else {
+      setIsLoading(false);
+    }
+  }, [authUser, refreshData]);
 
   // Fetch the current user (example: from userService or authService)
   useEffect(() => {

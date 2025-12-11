@@ -7,7 +7,7 @@ import {
   useCallback,
 } from "react";
 import { useAuthService } from "@/services";
-import { User } from "@/data/mockData";
+import { User } from "@/types/backendDtos";
 
 interface AuthContextType {
   user: User | null;
